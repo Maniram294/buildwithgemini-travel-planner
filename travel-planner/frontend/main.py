@@ -241,16 +241,21 @@ async def delete_passport(req: Request):
     return JSONResponse(res)
 
 try:
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    if parent_dir not in sys.path:
-        sys.path.insert(0, parent_dir)
+    current_dir = os.path.abspath(os.path.dirname(__file__))
+    parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
+    for d in (current_dir, parent_dir):
+        if d not in sys.path:
+            sys.path.insert(0, d)
     from app.multi_agent.orchestrator import MultiAgentTravelOrchestrator
     from app.trip_validator import validate_canonical_trip
     from app.copilot_engine import TripCopilotEngine
     _orchestrator = MultiAgentTravelOrchestrator()
     _copilot_engine = TripCopilotEngine()
+    print("MultiAgentTravelOrchestrator and TripCopilotEngine loaded successfully.")
 except Exception as e:
+    import traceback
     print(f"Error loading orchestrator, validator, or copilot engine: {e}")
+    traceback.print_exc()
     _orchestrator = None
     _copilot_engine = None
 
