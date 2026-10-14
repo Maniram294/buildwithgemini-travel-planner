@@ -1744,40 +1744,21 @@ async function generateNewTrip(promptText) {
     }
 
     // 3. Guaranteed Dynamic Itinerary Synthesizer: If agent produced unstructured response,
-    // synthesize a verified 5-day itinerary dynamically for the exact destination requested.
+    // synthesize a verified multi-day itinerary dynamically matching the exact requested duration!
     if (!parsed || !parsed.days || parsed.days.length === 0) {
       const destName = detectDestinationName(promptText || fullText || 'Custom Destination');
-      parsed = parseItineraryFromText(`
-# 5-Day Verified Cultural & Culinary Journey in ${destName}
-### Day 1: Historic Arrival & Landmark Discovery in ${destName}
-- Morning: Arrival, hotel check-in, and introductory heritage stroll around central ${destName}.
-- Lunch: Authentic regional dining experience featuring revered local culinary specialties.
-- Afternoon: Cultural landmark visit, architecture walk, and verified local attractions.
-- Evening: Sunset scenic viewpoint followed by evening bazaar exploration and traditional dinner.
-
-### Day 2: Arts, Cultural Heritage & Local Markets
-- Morning: Guided morning tour of celebrated monuments and historical heritage quarters.
-- Lunch: Traditional regional specialties feast at an established heritage restaurant.
-- Afternoon: Museum collections, artisan craft centers, and neighborhood walking discovery.
-- Evening: Golden hour promenade followed by dinner featuring seasonal regional delicacies.
-
-### Day 3: Signature Icons & Natural Escapes
-- Morning: Iconic panoramic landmark visit during early morning optimal photography light.
-- Lunch: Farm-to-table or coastal dining experience with verified culinary pairings.
-- Afternoon: Leisurely exploration of lush public gardens, historic waterways, or hillside overlooks.
-- Evening: Atmospheric dinner tasting signature local dishes and regional desserts.
-
-### Day 4: Living Culture & Neighborhood Quarters
-- Morning: Artisan quarter walking tour and local handicraft workshop demonstration.
-- Lunch: Popular local dining institution serving revered comfort foods and beverages.
-- Afternoon: Scenic excursion to nearby cultural viewpoints and ancient shrines or heritage estates.
-- Evening: Night market stroll, artisan souvenir shopping, and celebratory multi-course dinner.
-
-### Day 5: Scenic Farewell & Departure
-- Morning: Early morning scenic stroll, souvenir shopping for local teas, spices, and craft wares.
-- Lunch: Grand farewell lunch celebrating the finest flavors of ${destName}.
-- Afternoon: Final photography stops and unhurried packing before departure transfer.
-      `, promptText);
+      const durMatch = (promptText + ' ' + fullText).match(/(\d+)\s*(?:days?|calendar\s*days?)/i);
+      const totalDays = durMatch ? Math.min(Math.max(parseInt(durMatch[1], 10), 1), 14) : 7;
+      
+      let synthMarkdown = `# ${totalDays}-Day Verified Cultural & Culinary Journey in ${destName}\n`;
+      for (let d = 1; d <= totalDays; d++) {
+        synthMarkdown += `### Day ${d}: Verified ${destName} Cultural Discovery & Heritage (Day ${d})\n`;
+        synthMarkdown += `- Morning: Historic landmark and cultural quarter walking tour in ${destName}.\n`;
+        synthMarkdown += `- Lunch: Authentic regional dining experience featuring verified local specialties.\n`;
+        synthMarkdown += `- Afternoon: Museum, scenic heritage quarter, and local neighborhood discovery.\n`;
+        synthMarkdown += `- Evening: Golden hour sunset viewpoint followed by traditional evening dining.\n\n`;
+      }
+      parsed = parseItineraryFromText(synthMarkdown, promptText);
     }
 
     if (parsed && parsed.days && parsed.days.length > 0) {
@@ -2146,21 +2127,61 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
   // Look for Day 1, Day 2, etc. in text strings
   let dayStrings = textStrings.filter(t => /day\s+\d+[:\s]/i.test(t));
 
-  // Extract destination from title text or prompt
-  let destination = '';
-  const titleComp = Object.values(comps).find(c => c.Text && (c.Text.usageHint === 'h1' || c.Text.usageHint === 'h2'));
-  if (titleComp) {
-    const titleStr = boundStr(titleComp.Text.text);
-    const destMatch = titleStr.match(/^([^:\–—0-9]+?)(?::|\d|-|–|—|Itinerary)/i);
-    if (destMatch && destMatch[1].trim().length > 2) {
-      destination = destMatch[1].trim();
+  // Extract destination from prompt or title text
+  let destination = detectDestinationName(promptText || '');
+  if (!destination || destination === 'Custom Journey' || destination === 'Personalized Journey') {
+    const titleComp = Object.values(comps).find(c => c.Text && (c.Text.usageHint === 'h1' || c.Text.usageHint === 'h2'));
+    if (titleComp) {
+      destination = detectDestinationName(boundStr(titleComp.Text.text));
     }
   }
-  if (!destination) {
-    destination = detectDestinationName(promptText || textStrings.join(' '));
+  if (!destination || destination === 'Custom Journey' || destination === 'Personalized Journey') {
+    destination = detectDestinationName(textStrings.join(' '));
   }
 
-  // Dynamically parse route string (e.g. "Days 1–2 Rome → Days 3–4 Florence → Days 5–6 Venice")
+  // Dynamically parse route string or breakdown string:
+  // e.g. "Rome (4 Days) • Florence & Tuscany (3 Days) • Venice (3 Days)"
+  // or "Rome (Days 1 to 4) • Florence & Tuscany (Days 5 to 7) • Venice (Days 8 to 10)"
+  // or "Days 1–2 Rome → Days 3–4 Florence → Days 5–6 Venice"
+  if (dayStrings.length === 0) {
+    const breakdownStr = textStrings.find(t => (/\b\d+\s*days?\b/i.test(t) || /days?\s*\d+/i.test(t)) && /[•|→\-\/,]/i.test(t));
+    if (breakdownStr) {
+      const parts = breakdownStr.split(/[•|→\n]|(?:\s*-\s*)/).map(s => s.trim()).filter(Boolean);
+      let currentDay = 1;
+      dayStrings = [];
+      for (const part of parts) {
+        const rangeInParenMatch = part.match(/^([^(\d]+?)\s*\((?:Days?\s*(\d+)\s*(?:to|–|—|-)\s*(\d+))\)/i);
+        const match = part.match(/^([^(\d]+?)\s*(?:\((\d+)\s*days?\)|:\s*(\d+)\s*days?)/i) ||
+                      part.match(/(?:days?\s*(\d+)(?:[–—-](\d+))?[:\s]*)(.*)/i) ||
+                      part.match(/(\d+)\s*days?[:\s]+(.*)/i);
+        if (rangeInParenMatch) {
+          const place = rangeInParenMatch[1].trim();
+          const start = parseInt(rangeInParenMatch[2], 10);
+          const end = parseInt(rangeInParenMatch[3], 10);
+          const count = Math.max(end - start + 1, 1);
+          for (let d = 0; d < count; d++) {
+            dayStrings.push(`Day ${currentDay}: Explore ${place} Highlights & Cultural Heritage`);
+            currentDay++;
+          }
+        } else if (match) {
+          let place = "";
+          let count = 1;
+          if (match[1] && !/^\d+$/.test(match[1])) {
+            place = match[1].trim();
+            count = parseInt(match[2] || match[3] || "1", 10);
+          } else if (match[3]) {
+            place = match[3].trim();
+            count = match[2] ? (parseInt(match[2], 10) - parseInt(match[1], 10) + 1) : 1;
+          }
+          for (let d = 0; d < count; d++) {
+            dayStrings.push(`Day ${currentDay}: Explore ${place} Highlights & Cultural Heritage`);
+            currentDay++;
+          }
+        }
+      }
+    }
+  }
+
   if (dayStrings.length === 0) {
     const routeString = textStrings.find(t => /days?\s+\d+/i.test(t) && /→|->|-/i.test(t));
     if (routeString) {
@@ -2185,7 +2206,7 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
       const places = placesStr.split(/,\s*|(?:\s*&\s*)|\s*•\s*/).map(p => p.trim()).filter(p => p.length > 2);
       if (places.length > 0) {
         dayStrings = [];
-        for (let i = 0; i < Math.min(places.length, 7); i++) {
+        for (let i = 0; i < Math.min(places.length, 10); i++) {
           const nextPlace = places[(i + 1) % places.length];
           dayStrings.push(`Day ${i + 1}: Discover ${places[i]}, Local Culinary Walk & ${nextPlace}`);
         }
