@@ -178,17 +178,20 @@ except Exception as e:
     _food_passport_mgr = None
 
 @app.get("/api/food/specialties")
-async def get_food_specialties(destination: str = "italy"):
+async def get_food_specialties(destination: str = ""):
     if not _culinary_mod:
         return JSONResponse({"error": "Culinary module unavailable"}, status_code=500)
-    dest_key = destination.lower().strip()
-    data = None
-    for k, v in _culinary_mod.REGIONAL_SPECIALTIES.items():
-        if k in dest_key or dest_key in k:
-            data = v
-            break
-    if not data:
-        data = _culinary_mod.REGIONAL_SPECIALTIES.get("italy") or _culinary_mod.REGIONAL_SPECIALTIES.get("kyoto")
+    if not destination or not destination.strip():
+        return JSONResponse({})
+    if hasattr(_culinary_mod, "get_culinary_context"):
+        data = _culinary_mod.get_culinary_context(destination)
+    else:
+        dest_key = destination.lower().strip()
+        data = None
+        for k, v in _culinary_mod.REGIONAL_SPECIALTIES.items():
+            if k in dest_key or dest_key in k:
+                data = v
+                break
     return JSONResponse(data or {})
 
 @app.get("/api/events")

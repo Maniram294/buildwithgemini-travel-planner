@@ -398,3 +398,72 @@ class TestChennaiDestinationIntelligence:
         assert res_default["num_days"] == 7
         assert res_default["is_default"] is True
 
+
+class TestFoodExplorerDestinationGrounding:
+    """Regression test suite for Food Explorer destination grounding (Scenarios A through F)."""
+
+    def test_scenario_a_italy_multi_city_culinary_grounding(self):
+        """Scenario A: Italy trip returns regional Italian specialties spanning Rome, Florence, Venice."""
+        context = get_culinary_context("Italy")
+        assert context is not None
+        assert "Italy" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Cacio e Pepe" in d or "Carbonara" in d for d in dishes)
+        assert any("Fiorentina" in d for d in dishes)
+        assert any("Cicchetti" in d for d in dishes)
+        assert not any("Chettinad" in d or "Filter Coffee" in d for d in dishes)
+
+    def test_scenario_b_kerala_grounding(self):
+        """Scenario B: Kerala trip returns authentic coastal specialties without Chennai or Italy leakage."""
+        context = get_culinary_context("Kerala")
+        assert context is not None
+        assert "Kerala" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Karimeen" in d for d in dishes)
+        assert any("Sadya" in d for d in dishes)
+        assert not any("Chettinad" in d or "Cacio e Pepe" in d for d in dishes)
+
+    def test_scenario_c_japan_grounding(self):
+        """Scenario C: Japan destination properly resolves to Japanese specialties."""
+        context = get_culinary_context("Japan")
+        assert context is not None
+        assert "Japan" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Ramen" in d or "Kaiseki" in d or "Tsukemen" in d for d in dishes)
+        assert not any("Pizza" in d or "Chettinad" in d for d in dishes)
+
+    def test_scenario_d_trip_switching_isolation(self):
+        """Scenario D: Switching destination lookups preserves clean data isolation with no stale leakage."""
+        italy_data = get_culinary_context("Italy")
+        kerala_data = get_culinary_context("Kerala")
+        chennai_data = get_culinary_context("Chennai")
+
+        assert "Italy" in italy_data["destination"]
+        assert "Kerala" in kerala_data["destination"]
+        assert "Chennai" in chennai_data["destination"]
+
+        italy_dishes = [d["dish"] for d in italy_data["signature_dishes"]]
+        kerala_dishes = [d["dish"] for d in kerala_data["signature_dishes"]]
+        chennai_dishes = [d["dish"] for d in chennai_data["signature_dishes"]]
+
+        # Ensure no cross-contamination
+        assert not any(d in kerala_dishes for d in italy_dishes)
+        assert not any(d in chennai_dishes for d in italy_dishes)
+        assert not any(d in kerala_dishes for d in chennai_dishes)
+
+    def test_scenario_e_missing_unknown_destination_neutral_state(self):
+        """Scenario E: Missing or unrecognized destination returns None without silently defaulting to Chennai."""
+        assert get_culinary_context("Atlantis") is None
+        assert get_culinary_context("Unknown Destination XYZ") is None
+        assert get_culinary_context("") is None
+
+    def test_scenario_f_city_specific_contexts(self):
+        """Scenario F: Direct selection of Rome, Florence, and Venice individually resolves to their city cuisines."""
+        rome = get_culinary_context("Rome")
+        florence = get_culinary_context("Florence")
+        venice = get_culinary_context("Venice")
+
+        assert rome is not None and "Rome" in rome["destination"]
+        assert florence is not None and "Florence" in florence["destination"]
+        assert venice is not None and "Venice" in venice["destination"]
+

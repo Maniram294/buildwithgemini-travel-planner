@@ -1489,12 +1489,16 @@
           <h2 style="font-size:1.4rem; font-weight:700;">Authentic Regional Food Explorer</h2>
           <p style="font-size:0.9rem; color:var(--text-secondary);">Grounded culinary specialties, cultural etiquette, and historic market districts.</p>
         </div>
-        <select id="food-dest-select" class="btn btn-outline" onchange="loadFoodExplorerData(this.value)">
+        <select id="food-dest-select" class="btn btn-outline" onchange="handleFoodExplorerManualSelect(this.value)">
+          <option value="">-- Select Destination --</option>
+          <option value="italy">Italy (Rome, Florence & Venice)</option>
+          <option value="rome">Rome (Classical Lazio Cuisine)</option>
+          <option value="florence">Florence (Tuscan Heritage & Chianina)</option>
+          <option value="venice">Venice (Lagoon Cicchetti & Seafood)</option>
+          <option value="kerala">Kerala (God's Own Country & Backwaters)</option>
           <option value="chennai">Chennai (Classical Arts & Coastal Chettinad Cuisine)</option>
           <option value="delhi">Delhi (Mughlai & Punjabi Street Food)</option>
-          <option value="kerala">Kerala (God's Own Country & Backwaters)</option>
           <option value="hyderabad">Hyderabad (Nizami Heritage & Biryani)</option>
-          <option value="italy">Italy (Rome, Florence & Venice)</option>
           <option value="kyoto">Kyoto Culinary Heritage</option>
           <option value="tokyo">Tokyo Shitamachi & Ramen</option>
           <option value="istanbul">Istanbul Bosphorus Specialties</option>
@@ -1688,10 +1692,27 @@ function switchView(viewName) {
   if (targetView) targetView.classList.add('active');
   if (targetNav) targetNav.classList.add('active');
 
-  const currentDest = (dynamicItinerary && dynamicItinerary.destination) ? dynamicItinerary.destination : 'hyderabad';
+  const currentDest = (dynamicItinerary && dynamicItinerary.destination) ? dynamicItinerary.destination : null;
   if (viewName === 'food') loadFoodExplorerData(currentDest);
   if (viewName === 'passport') loadPassportData();
-  if (viewName === 'events') loadEventsData(currentDest);
+  if (viewName === 'events') {
+    if (currentDest) loadEventsData(currentDest);
+    else {
+      const evCont = document.getElementById('events-list-container');
+      if (evCont) {
+        evCont.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+            <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--coral); margin-bottom: 0.75rem;">event</span>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Active Trip Selected</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 480px; margin: 0 auto 1.5rem auto;">
+              Plan a trip to view matching cultural festivals and verified municipal event calendars.
+            </p>
+            <button class="btn btn-coral" onclick="openNewTripModal()">Plan a Trip</button>
+          </div>
+        `;
+      }
+    }
+  }
 }
 
 function fillWelcomePrompt(promptText) {
@@ -1815,17 +1836,109 @@ function selectDay(dayNumber) {
 }
 
 // --- Data Fetching: Local Food Explorer ---
-async function loadFoodExplorerData(destination = 'kyoto') {
+let foodExplorerRequestSeq = 0;
+
+function syncFoodExplorerSelector(destToSelect) {
+  const select = document.getElementById('food-dest-select');
+  if (!select) return;
+  if (!destToSelect) {
+    select.value = "";
+    return;
+  }
+  const clean = destToSelect.toLowerCase().trim();
+  
+  // Find matching option
+  let matchedValue = null;
+  for (const opt of select.options) {
+    if (!opt.value) continue;
+    const optVal = opt.value.toLowerCase();
+    const optText = opt.text.toLowerCase();
+    if (optVal === clean || clean.includes(optVal) || optVal.includes(clean) || optText.includes(clean)) {
+      matchedValue = opt.value;
+      break;
+    }
+  }
+
+  if (matchedValue) {
+    select.value = matchedValue;
+  } else {
+    // Dynamically insert active destination option at the top of destinations
+    const newOpt = document.createElement('option');
+    newOpt.value = clean;
+    newOpt.textContent = destToSelect.includes('(') ? destToSelect : `${destToSelect} (Active Trip Destination)`;
+    select.insertBefore(newOpt, select.options[1] || null);
+    select.value = clean;
+  }
+}
+
+async function handleFoodExplorerManualSelect(selectedDest) {
+  if (!selectedDest) {
+    const container = document.getElementById('food-dishes-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center;">
+          <span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--text-secondary); margin-bottom: 0.5rem;">restaurant</span>
+          <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Select a Destination</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 480px; margin: 0 auto 1rem auto;">
+            Choose a destination from the dropdown above to discover authentic regional culinary specialties.
+          </p>
+        </div>
+      `;
+    }
+    return;
+  }
+  await loadFoodExplorerData(selectedDest, false);
+}
+
+async function loadFoodExplorerData(destination = null, syncDropdown = true) {
   const container = document.getElementById('food-dishes-container');
-  container.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">hourglass_empty</span><p>Loading authentic specialties…</p></div>';
+  if (!container) return;
+
+  // If no destination specified and no active trip, render neutral empty state
+  const targetDest = destination || (dynamicItinerary && dynamicItinerary.destination ? dynamicItinerary.destination : null);
+  if (!targetDest) {
+    syncFoodExplorerSelector(null);
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+        <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--coral); margin-bottom: 0.75rem;">travel_explore</span>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Active Trip Selected</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 480px; margin: 0 auto 1.5rem auto;">
+          Plan a trip to unlock destination-specific culinary specialties, cultural dining etiquette, and historic food markets.
+        </p>
+        <div style="display: inline-flex; gap: 0.75rem;">
+          <button class="btn btn-coral" onclick="openNewTripModal()">Plan a Trip</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (syncDropdown) {
+    syncFoodExplorerSelector(targetDest);
+  }
+
+  const currentSeq = ++foodExplorerRequestSeq;
+  container.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><span class="material-symbols-outlined">hourglass_empty</span><p>Loading authentic specialties…</p></div>';
+
   try {
-    const res = await fetch(`/api/food/specialties?destination=${destination}`);
+    const res = await fetch(`/api/food/specialties?destination=${encodeURIComponent(targetDest)}`);
     const data = await res.json();
+    
+    // Guard against race conditions if another destination was chosen while waiting
+    if (currentSeq !== foodExplorerRequestSeq) return;
+
     if (!data.signature_dishes || data.signature_dishes.length === 0) {
-      container.innerHTML = '<div class="empty-state"><p>No culinary records found.</p></div>';
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <span class="material-symbols-outlined">sentiment_dissatisfied</span>
+          <p>No culinary records found for "${targetDest}".</p>
+        </div>
+      `;
       return;
     }
+
     container.innerHTML = '';
+    const destTitle = data.destination || targetDest;
     data.signature_dishes.forEach(d => {
       const card = document.createElement('div');
       card.className = 'food-card';
@@ -1839,10 +1952,10 @@ async function loadFoodExplorerData(destination = 'kyoto') {
           <strong>How to order:</strong> ${d.typical_ordering_advice}
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
-          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.dish + ' in ' + data.destination)}" target="_blank" rel="noopener" class="action-link">
+          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.dish + ' in ' + destTitle)}" target="_blank" rel="noopener" class="action-link">
             Find Venues ↗
           </a>
-          <button class="btn btn-outline btn-sm" onclick="saveDishToPassport('${d.dish.replace(/'/g, "\\'")}', '${data.destination}')">
+          <button class="btn btn-outline btn-sm" onclick="saveDishToPassport('${d.dish.replace(/'/g, "\\'")}', '${destTitle.replace(/'/g, "\\'")}')">
             Save to Passport
           </button>
         </div>
@@ -1850,7 +1963,8 @@ async function loadFoodExplorerData(destination = 'kyoto') {
       container.appendChild(card);
     });
   } catch (e) {
-    container.innerHTML = `<div class="empty-state"><p>Error loading food data: ${e.message}</p></div>`;
+    if (currentSeq !== foodExplorerRequestSeq) return;
+    container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;"><p>Error loading food data: ${e.message}</p></div>`;
   }
 }
 
@@ -2377,6 +2491,9 @@ function updateWorkspaceWithItinerary(parsedPlan, rawText) {
 
   // 3. Render Day 1
   renderDayWorkspace(1);
+
+  // Synchronize Food Explorer with active trip
+  syncFoodExplorerSelector(parsedPlan.destination);
 
   // Switch to planner view
   switchView('planner');

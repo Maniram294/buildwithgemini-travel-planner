@@ -436,9 +436,13 @@ REGIONAL_SPECIALTIES: Dict[str, Dict[str, Any]] = {
 
 def get_culinary_context(destination: str) -> Optional[Dict[str, Any]]:
     """Retrieve grounded culinary specialties, signature dishes, and food districts for a destination."""
+    if not destination or not destination.strip():
+        return None
     dest_clean = destination.lower().strip()
     for key, data in REGIONAL_SPECIALTIES.items():
         if key in dest_clean or dest_clean in key:
             return data
+    if "japan" in dest_clean:
+        return REGIONAL_SPECIALTIES.get("tokyo") or REGIONAL_SPECIALTIES.get("kyoto")
     return None
 
