@@ -271,6 +271,45 @@ REGIONAL_SPECIALTIES: Dict[str, Dict[str, Any]] = {
             {"neighborhood": "Cannaregio (Fondamenta dei Ormesini)", "vibe": "Canal-side promenade lined with relaxed bacari where locals drink spritz at twilight."},
             {"neighborhood": "Dorsoduro", "vibe": "Student-friendly bars, Campo Santa Margherita, and scenic canal-front cicchetti bars near the squero (gondola boatyard)."}
         ]
+    },
+    "hyderabad": {
+        "destination": "Hyderabad, India",
+        "food_culture_summary": (
+            "Hyderabadi cuisine is a legendary synthesis of royal Mughlai opulence, Persian influences, and fiery Telugu spices. "
+            "Renowned for slow-cooking (dum) techniques, aromatic saffron and cardamom, rich gravies, and historic Irani cafe tea culture."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Hyderabadi Dum Biryani",
+                "cultural_context": "Kacchi yakhni style where marinated raw mutton or chicken and parboiled basmati rice are sealed in a handi with dough and slow-cooked over coals.",
+                "typical_ordering_advice": "Order at iconic heritage institutions like Paradise (Secunderabad), Bawarchi (RTC X Roads), or Shadab (Ghansi Bazaar)."
+            },
+            {
+                "dish": "Hyderabadi Haleem",
+                "cultural_context": "GI-tagged royal porridge of shredded meat, pounded whole wheat, lentils, and pure ghee simmered for 12 hours.",
+                "typical_ordering_advice": "Traditionally prepared during Ramadan, also served year-round at Pista House and Sarvi."
+            },
+            {
+                "dish": "Irani Chai & Osmania Biscuits",
+                "cultural_context": "Thick caramelized milk decoction tea brought by Zoroastrian Persian immigrants in the early 20th century, paired with sweet-and-salty Osmania biscuits.",
+                "typical_ordering_advice": "Drink standing outside Nimrah Cafe and Bakery facing the historic Charminar at sunrise."
+            },
+            {
+                "dish": "Mirchi ka Salan",
+                "cultural_context": "Spicy, nutty curry made with long green bhavnagri chilies, roasted peanuts, sesame seeds, coconut, and tamarind.",
+                "typical_ordering_advice": "Essential accompaniment to authentic Dum Biryani, balancing rich spices with tangy tamarind."
+            },
+            {
+                "dish": "Double ka Meetha",
+                "cultural_context": "Decadent Hyderabadi bread pudding soaked in saffron-infused reduced milk (rabri), topped with fried cashews, almonds, and silver vark.",
+                "typical_ordering_advice": "Traditional grand finale to Nizami wedding feasts and celebratory dinners."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Old City (Charminar & Laad Bazaar)", "vibe": "Narrow historic lanes with smoky kebabs, sweet shops, and century-old Irani tea counters."},
+            {"neighborhood": "RTC X Roads & Musheerabad", "vibe": "Hub of iconic competing Biryani kitchens frequented by moviegoers and locals alike."},
+            {"neighborhood": "Banjara Hills & Jubilee Hills", "vibe": "Refined modern Andhra and Telangana dining, microbreweries, and upscale Nizami fine-dining restaurants."}
+        ]
     }
 }
 

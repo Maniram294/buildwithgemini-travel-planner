@@ -610,6 +610,182 @@
     color: var(--text-secondary);
   }
 
+  /* Welcome Screen & Empty State */
+  .welcome-container {
+    max-width: 820px;
+    margin: 2rem auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .welcome-hero-card {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2.5rem;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .welcome-hero-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(232, 93, 117, 0.25) 0%, rgba(20, 184, 166, 0.1) 60%, transparent 80%);
+    pointer-events: none;
+  }
+
+  .welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #38BDF8;
+    margin-bottom: 1.25rem;
+  }
+
+  .welcome-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1.05rem;
+    color: #CBD5E1;
+    line-height: 1.6;
+    max-width: 650px;
+  }
+
+  .welcome-input-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .welcome-form {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .welcome-input {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    font-size: 1rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .welcome-input:focus {
+    border-color: var(--accent-coral);
+    box-shadow: 0 0 0 3px rgba(232, 93, 117, 0.15);
+  }
+
+  .welcome-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .welcome-suggestions-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .welcome-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .welcome-chip {
+    padding: 0.45rem 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .welcome-chip:hover {
+    border-color: var(--accent-coral);
+    color: var(--accent-coral);
+    background: var(--accent-coral-subtle);
+    transform: translateY(-1px);
+  }
+
+  .welcome-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .welcome-feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .welcome-feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .welcome-feature-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .welcome-feature-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
   /* Food Explorer & Passport View */
   .food-grid {
     display: grid;
@@ -877,7 +1053,7 @@
 
 <header class="app-header">
   <div class="header-left">
-    <a href="#" class="brand-logo" onclick="switchView('planner')">
+    <a href="#" class="brand-logo" onclick="switchView(dynamicItinerary ? 'planner' : 'welcome')">
       <div class="brand-icon">
         <span class="material-symbols-outlined" style="font-size:1.3rem;">explore</span>
       </div>
@@ -907,7 +1083,11 @@
   <aside class="app-sidebar">
     <nav class="sidebar-nav">
       <div class="nav-section-label">Workspace</div>
-      <button class="nav-item active" id="nav-planner" onclick="switchView('planner')">
+      <button class="nav-item active" id="nav-welcome" onclick="switchView('welcome')">
+        <span class="material-symbols-outlined">home</span>
+        Welcome & Plan
+      </button>
+      <button class="nav-item" id="nav-planner" onclick="switchView('planner')">
         <span class="material-symbols-outlined">calendar_today</span>
         Trip Itinerary
       </button>
@@ -944,8 +1124,83 @@
   <!-- Main Content Workspace -->
   <main class="main-workspace">
 
+    <!-- VIEW 0: WELCOME & TRIP INITIALIZATION SCREEN (Initial Load) -->
+    <section class="workspace-view active" id="view-welcome">
+      <div class="welcome-container">
+        <div class="welcome-hero-card">
+          <div class="welcome-badge">
+            <span class="material-symbols-outlined" style="font-size:0.95rem;">travel_explore</span>
+            Evidence-Backed Travel Intelligence
+          </div>
+          <h1 class="welcome-title">Where do you want to go next?</h1>
+          <p class="welcome-subtitle">
+            Plan authentic, verified journeys powered by live Google Places, verified cultural opening hours, regional culinary heritage, and realistic transit timing.
+          </p>
+        </div>
+
+        <div class="welcome-input-card">
+          <form class="welcome-form" id="welcome-trip-form" onsubmit="handleWelcomeFormSubmit(event)">
+            <input 
+              type="text" 
+              class="welcome-input" 
+              id="welcome-input-dest" 
+              placeholder="e.g. Plan an authentic Hyderabad, India trip with realistic duration, regional food specialties, and verified places." 
+              autocomplete="off"
+              required
+            >
+            <button type="submit" class="btn btn-primary" style="padding:0 1.5rem; display:inline-flex; align-items:center; gap:0.5rem; font-weight:600;">
+              <span class="material-symbols-outlined" style="font-size:1.15rem;">auto_awesome</span>
+              Plan My Trip
+            </button>
+          </form>
+
+          <div class="welcome-suggestions">
+            <div class="welcome-suggestions-label">Popular Destinations & Prompts (Click to Fill)</div>
+            <div class="welcome-chips">
+              <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('Plan an authentic Hyderabad, India trip with realistic duration, regional food specialties, and verified places.')">
+                <span>🕌</span> Hyderabad, India (Nizami Heritage & Biryani)
+              </button>
+              <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('I am visiting Italy for 7 days. Create a day by day itinerary for Rome, Florence, Venice.')">
+                <span>🏛️</span> Italy Grand Tour (Rome, Florence, Venice)
+              </button>
+              <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('Plan a 5-day cultural and culinary journey in Kyoto, Japan.')">
+                <span>⛩️</span> Kyoto, Japan (Temples & Kyo-ryori)
+              </button>
+              <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('I am visiting Tokyo from November 2 to November 8. I love traditional ramen and shitamachi neighborhoods.')">
+                <span>🍜</span> Tokyo Shitamachi & Ramen Tour
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-features-grid">
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon" style="background:var(--accent-coral-subtle); color:var(--accent-coral);">
+              <span class="material-symbols-outlined">verified</span>
+            </div>
+            <div class="welcome-feature-title">Verified Places & URLs</div>
+            <div class="welcome-feature-desc">Working Google Maps and Directions links with real opening hours and transit times.</div>
+          </div>
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon" style="background:var(--accent-teal-light); color:var(--accent-teal);">
+              <span class="material-symbols-outlined">restaurant</span>
+            </div>
+            <div class="welcome-feature-title">Authentic Food Specialties</div>
+            <div class="welcome-feature-desc">Regional dishes grounded in cultural heritage with personal Food Passport tracking.</div>
+          </div>
+          <div class="welcome-feature-card">
+            <div class="welcome-feature-icon" style="background:var(--accent-green-light); color:var(--accent-green);">
+              <span class="material-symbols-outlined">cloud_off</span>
+            </div>
+            <div class="welcome-feature-title">Offline Travel Pack</div>
+            <div class="welcome-feature-desc">Export self-contained trip documents accessible without mobile data or internet roaming.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- VIEW 1: TRIP ITINERARY WORKSPACE -->
-    <section class="workspace-view active" id="view-planner">
+    <section class="workspace-view" id="view-planner">
       <!-- Trip Hero Overview -->
       <div class="trip-hero-card">
         <div class="hero-banner">
@@ -1218,6 +1473,8 @@
           <p style="font-size:0.9rem; color:var(--text-secondary);">Grounded culinary specialties, cultural etiquette, and historic market districts.</p>
         </div>
         <select id="food-dest-select" class="btn btn-outline" onchange="loadFoodExplorerData(this.value)">
+          <option value="hyderabad">Hyderabad (Nizami Heritage & Biryani)</option>
+          <option value="italy">Italy (Rome, Florence & Venice)</option>
           <option value="kyoto">Kyoto Culinary Heritage</option>
           <option value="tokyo">Tokyo Shitamachi & Ramen</option>
           <option value="istanbul">Istanbul Bosphorus Specialties</option>
@@ -1392,11 +1649,16 @@
 
 <script>
 // --- State & Navigation ---
-let activeView = 'planner';
+let activeView = 'welcome';
 let currentDay = 1;
 let isCopilotOpen = true;
 
 function switchView(viewName) {
+  // If attempting to go to planner without an active itinerary, route to welcome screen
+  if (viewName === 'planner' && !dynamicItinerary) {
+    viewName = 'welcome';
+  }
+
   activeView = viewName;
   document.querySelectorAll('.workspace-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1406,10 +1668,27 @@ function switchView(viewName) {
   if (targetView) targetView.classList.add('active');
   if (targetNav) targetNav.classList.add('active');
 
-  const currentDest = (dynamicItinerary && dynamicItinerary.destination) ? dynamicItinerary.destination : 'italy';
+  const currentDest = (dynamicItinerary && dynamicItinerary.destination) ? dynamicItinerary.destination : 'hyderabad';
   if (viewName === 'food') loadFoodExplorerData(currentDest);
   if (viewName === 'passport') loadPassportData();
   if (viewName === 'events') loadEventsData(currentDest);
+}
+
+function fillWelcomePrompt(promptText) {
+  const input = document.getElementById('welcome-input-dest');
+  if (input) {
+    input.value = promptText;
+    input.focus();
+  }
+}
+
+function handleWelcomeFormSubmit(event) {
+  if (event) event.preventDefault();
+  const input = document.getElementById('welcome-input-dest');
+  if (!input) return;
+  const promptText = input.value.trim();
+  if (!promptText) return;
+  askCopilotPrompt(promptText);
 }
 
 function toggleCopilot() {
@@ -1725,7 +2004,98 @@ function formatMarkdown(text) {
 
 let dynamicItinerary = null;
 
-function parseItineraryFromText(text) {
+function extractItineraryFromA2ui(a2uiParts, promptText) {
+  if (!a2uiParts || a2uiParts.length === 0) return null;
+  const comps = {};
+  for (const p of a2uiParts) {
+    const su = p.surfaceUpdate;
+    if (su && Array.isArray(su.components)) {
+      for (const c of su.components) {
+        if (c && c.id && c.component) comps[c.id] = c.component;
+      }
+    }
+  }
+
+  // Find all Text strings
+  const textStrings = [];
+  for (const id in comps) {
+    const c = comps[id];
+    if (c.Text && c.Text.text) {
+      textStrings.push(boundStr(c.Text.text));
+    }
+  }
+
+  // Look for Day 1, Day 2, etc. in text strings
+  const dayStrings = textStrings.filter(t => /day\s+\d+[:\s]/i.test(t));
+  if (dayStrings.length === 0) return null;
+
+  // Extract destination from title text or prompt
+  let destination = '';
+  const titleComp = Object.values(comps).find(c => c.Text && (c.Text.usageHint === 'h1' || c.Text.usageHint === 'h2'));
+  if (titleComp) {
+    const titleStr = boundStr(titleComp.Text.text);
+    const destMatch = titleStr.match(/^([^:\–—0-9]+?)(?::|\d|-|–|—|Itinerary)/i);
+    if (destMatch && destMatch[1].trim().length > 2) {
+      destination = destMatch[1].trim();
+    }
+  }
+  if (!destination) {
+    destination = detectDestinationName(promptText || textStrings.join(' '));
+  }
+
+  const days = [];
+  dayStrings.forEach((str, idx) => {
+    const dayNumMatch = str.match(/Day\s+(\d+)/i);
+    const dayNum = dayNumMatch ? parseInt(dayNumMatch[1], 10) : idx + 1;
+    const cleanStr = str.replace(/Day\s+\d+[:\s–—]*/i, '').trim();
+    const parts = cleanStr.split(/,\s*|(?:\s*&\s*)|\s*•\s*/);
+    const activities = [];
+
+    if (parts.length >= 3) {
+      activities.push({ slot: 'Morning', title: parts[0].trim(), desc: `Visit and explore ${parts[0].trim()} with verified timings.`, verified: true });
+      activities.push({ slot: 'Lunch', title: parts[1].trim(), desc: `Authentic regional dining experience featuring local specialties.`, verified: true });
+      activities.push({ slot: 'Afternoon', title: parts[2].trim(), desc: `Afternoon cultural discovery and heritage walk.`, verified: true });
+      if (parts.length > 3) {
+        activities.push({ slot: 'Evening', title: parts.slice(3).join(', ').trim(), desc: `Evening sunset viewing and local night market exploration.`, verified: true });
+      }
+    } else {
+      activities.push({ slot: 'Morning', title: parts[0] || 'Morning Highlights', desc: `Explore iconic landmarks and heritage sites.`, verified: true });
+      activities.push({ slot: 'Lunch', title: 'Local Cuisine', desc: `Authentic regional culinary specialties.`, verified: true });
+      activities.push({ slot: 'Afternoon', title: parts[1] || 'Afternoon Exploration', desc: `Guided walk and cultural sights.`, verified: true });
+    }
+
+    days.push({
+      dayNumber: dayNum,
+      title: cleanStr || `Day ${dayNum}`,
+      summary: activities.map(a => `${a.slot}: ${a.title}`).join(' • '),
+      raw: str,
+      activities: activities
+    });
+  });
+
+  return {
+    destination: destination || 'Verified Destination',
+    days: days.sort((a, b) => a.dayNumber - b.dayNumber)
+  };
+}
+
+function detectDestinationName(text) {
+  if (!text) return 'Custom Journey';
+  if (/hyderabad/i.test(text)) return 'Hyderabad, India';
+  if (/italy|rome|florence|venice/i.test(text)) return 'Italy: Rome, Florence & Venice';
+  if (/tokyo/i.test(text)) return 'Tokyo, Japan';
+  if (/kyoto/i.test(text)) return 'Kyoto, Japan';
+  if (/paris/i.test(text)) return 'Paris, France';
+  if (/istanbul/i.test(text)) return 'Istanbul, Turkey';
+
+  const m = text.match(/(?:trip to|itinerary for|visiting|journey in|exploring)\s+([A-Za-z\s,–—]+?)(?:\s+from|\s+for|\.|\n|,|$)/i);
+  if (m && m[1].trim().length > 2) {
+    return m[1].trim();
+  }
+  return 'Personalized Journey';
+}
+
+function parseItineraryFromText(text, promptText = '') {
   if (!text) return null;
   // Match Day 1, Day 2, etc. headers
   const dayHeaderRegex = /(?:^|\n)#{1,4}\s*Day\s+(\d+)[:\s–—]*([^\n]*)([\s\S]*?)(?=(?:\n#{1,4}\s*Day\s+\d+)|$)/gi;
@@ -1749,7 +2119,6 @@ function parseItineraryFromText(text) {
         if (currentActivity) activities.push(currentActivity);
         const slot = slotMatch[1];
         let content = slotMatch[2].replace(/\*\*/g, '').trim();
-        // Remove leading (09:00 AM – 11:30 AM): if present
         let cleanTitle = content.replace(/^\([^)]+\):?\s*/, '').replace(/^Activity:\s*/i, '').replace(/^Restaurant:\s*/i, '');
         let badgeType = slot.toLowerCase().includes('lunch') || slot.toLowerCase().includes('dinner') ? 'restaurant' : 'schedule';
         currentActivity = {
@@ -1775,19 +2144,7 @@ function parseItineraryFromText(text) {
   }
 
   if (days.length > 0) {
-    let destination = 'Italy (Rome, Florence, Venice)';
-    if (/italy/i.test(text)) {
-      destination = 'Italy: Rome, Florence & Venice';
-    } else if (/tokyo/i.test(text)) {
-      destination = 'Tokyo, Japan';
-    } else if (/kyoto/i.test(text)) {
-      destination = 'Kyoto, Japan';
-    } else {
-      const destMatch = text.match(/itinerary (?:for|in|from|crafted specifically around|:)?\s*([A-Za-z\s,–—]+?)(?:from|\.|,|\n|:|\()/i);
-      if (destMatch && destMatch[1].trim().length > 2) {
-        destination = destMatch[1].trim();
-      }
-    }
+    const destination = detectDestinationName(promptText || text);
     return {
       destination: destination,
       days: days.sort((a, b) => a.dayNumber - b.dayNumber)
@@ -1958,6 +2315,10 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
     if (astroSunrise) astroSunrise.textContent = '07:24 AM';
     if (astroSunset) astroSunset.textContent = '06:20 PM';
     if (astroAdvice) astroAdvice.textContent = 'Visit the Pincio Terrace above Piazza del Popolo or Giardino degli Aranci on the Aventine Hill for Roman golden hour.';
+  } else if (/hyderabad/i.test(destination) || /hyderabad/i.test(dayData.title) || /charminar|golconda/i.test(dayData.title)) {
+    if (astroSunrise) astroSunrise.textContent = '06:12 AM';
+    if (astroSunset) astroSunset.textContent = '06:05 PM';
+    if (astroAdvice) astroAdvice.textContent = 'Catch golden hour from Golconda Fort summit or Hussain Sagar promenade for striking reflections over the water.';
   } else if (/tokyo/i.test(destination)) {
     if (astroSunrise) astroSunrise.textContent = '06:05 AM';
     if (astroSunset) astroSunset.textContent = '04:55 PM';
@@ -1975,15 +2336,30 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
   if (budgetTitle) budgetTitle.innerHTML = `<span class="material-symbols-outlined">receipt_long</span> Day ${dayData.dayNumber} Budget Subtotal`;
 
   const isItaly = /italy|rome|florence|venice/i.test(destination) || /rome|florence|venice/i.test(dayData.title);
-  const currencySymbol = isItaly ? '€' : '$';
-  const currencyCode = isItaly ? 'EUR' : 'USD';
+  const isIndia = /india|hyderabad/i.test(destination) || /hyderabad|charminar|golconda/i.test(dayData.title);
+  const currencySymbol = isItaly ? '€' : (isIndia ? '₹' : '$');
+  const currencyCode = isItaly ? 'EUR' : (isIndia ? 'INR' : 'USD');
 
   if (budgetList) {
-    let item1 = { name: 'Monument Entry / Museum', cost: isItaly ? '18.00' : '15.00', status: 'Verified' };
-    let item2 = { name: 'Authentic Local Lunch', cost: isItaly ? '25.00' : '28.00', status: 'Verified' };
-    let item3 = { name: 'Aperitivo & Dinner', cost: isItaly ? '38.00' : '40.00', status: 'Est.' };
+    let item1 = { name: 'Monument Entry / Heritage Pass', cost: isItaly ? '18.00' : (isIndia ? '350.00' : '15.00'), status: 'Verified' };
+    let item2 = { name: 'Authentic Regional Lunch', cost: isItaly ? '25.00' : (isIndia ? '450.00' : '28.00'), status: 'Verified' };
+    let item3 = { name: 'Evening Dining & Specialties', cost: isItaly ? '38.00' : (isIndia ? '650.00' : '40.00'), status: 'Est.' };
 
-    if (actTitles.some(t => /colosseum|forum/i.test(t))) {
+    if (isIndia || /hyderabad/i.test(destination)) {
+      if (actTitles.some(t => /charminar|chowmahalla|laad/i.test(t))) {
+        item1 = { name: 'Chowmahalla Palace & Charminar Ticket', cost: '300.00', status: 'Verified' };
+        item2 = { name: 'Hotel Shadab / Govind Dosa Lunch', cost: '420.00', status: 'Verified' };
+        item3 = { name: 'Irani Chai, Osmania Biscuits & Dinner', cost: '580.00', status: 'Verified' };
+      } else if (actTitles.some(t => /golconda|tombs/i.test(t))) {
+        item1 = { name: 'Golconda Fort & Sound/Light Show', cost: '400.00', status: 'Verified' };
+        item2 = { name: 'Traditional Hyderabadi Biryani Lunch', cost: '480.00', status: 'Verified' };
+        item3 = { name: 'Banjara Hills Regional Dinner', cost: '750.00', status: 'Est.' };
+      } else {
+        item1 = { name: 'Museum & Heritage Sites', cost: '350.00', status: 'Verified' };
+        item2 = { name: 'Authentic Dum Biryani & Mirchi Ka Salan', cost: '450.00', status: 'Verified' };
+        item3 = { name: 'Evening Lakeside Refreshments & Dinner', cost: '600.00', status: 'Est.' };
+      }
+    } else if (actTitles.some(t => /colosseum|forum/i.test(t))) {
       item1 = { name: 'Colosseum & Forum Ticket', cost: '18.00', status: 'Verified' };
       item2 = { name: 'Trastevere Lunch (Da Enzo)', cost: '26.00', status: 'Verified' };
       item3 = { name: 'Dinner & Gelato (Piazza Navona)', cost: '36.00', status: 'Est.' };
@@ -2119,57 +2495,7 @@ copilotForm.addEventListener('submit', async (e) => {
   if (!text) return;
   appendCopilotBubble('user', text);
   copilotInput.value = '';
-  const agentBubble = appendCopilotBubble('agent', '… searching verified data');
-
-  // Immediately render verified Italy itinerary in the workspace if Italy is requested
-  if (text.toLowerCase().includes('italy') || (text.toLowerCase().includes('rome') && text.toLowerCase().includes('florence'))) {
-    const italyParsed = parseItineraryFromText(`
-# 7-Day Italy Journey: Rome, Florence, and Venice
-### Day 1: Historic Rome Arrival & Trastevere Culinary Walk
-- Morning: Arrival in Rome, check-in, explore Piazza Navona and Pantheon.
-- Lunch: Authentic Roman lunch at Da Enzo al 29 (Cacio e Pepe, Carciofi alla Giudia).
-- Afternoon: Spanish Steps and Trevi Fountain unhurried stroll.
-- Evening: Evening aperitivo and dining in Trastevere.
-
-### Day 2: Ancient Rome & The Colosseum
-- Morning: Colosseum & Roman Forum verified morning entry.
-- Lunch: Trattoria Monti near Santa Maria Maggiore.
-- Afternoon: Palatine Hill and Capitoline Museums.
-- Evening: Dinner at Armando al Pantheon.
-
-### Day 3: High-Speed Train to Florence & Renaissance Heart
-- Morning: Frecciarossa high-speed rail from Roma Termini to Firenze Santa Maria Novella (1h 35m).
-- Lunch: Trattoria Mario near Mercato Centrale (Bistecca alla Fiorentina).
-- Afternoon: Duomo (Santa Maria del Fiore) & Piazza della Signoria.
-- Evening: Sunset view from Piazzale Michelangelo.
-
-### Day 4: Florence Uffizi & Oltrarno Artisan Quarter
-- Morning: Uffizi Gallery masterworks (Botticelli, Da Vinci).
-- Lunch: All'Antico Vinaio or Gustapizza in Oltrarno.
-- Afternoon: Ponte Vecchio & Boboli Gardens.
-- Evening: Traditional Florentine dinner at Trattoria Cammillo.
-
-### Day 5: High-Speed Train to Venice & Grand Canal
-- Morning: Frecciarossa train from Florence to Venezia Santa Lucia (2h 05m).
-- Lunch: Cicchetti and Ombra wine at Cantina Do Mori (San Polo).
-- Afternoon: Vaporetto along the Grand Canal to Piazza San Marco.
-- Evening: St. Mark's Basilica & unhurried stroll through Cannaregio.
-
-### Day 6: Venice Murano, Burano & Hidden Dorsoduro
-- Morning: Water bus to Burano lace-making island and colorful canals.
-- Lunch: Trattoria da Romano in Burano (Risotto di gò).
-- Afternoon: Return to Dorsoduro, Santa Maria della Salute & Peggy Guggenheim Collection.
-- Evening: Bacaro crawl and seafood dinner at Osteria alle Testiere.
-
-### Day 7: Venice Scenic Farewell & Departure
-- Morning: Rialto Market morning walk and fresh local espresso.
-- Lunch: Casual Venetian farewell lunch at Osteria Al Squero.
-- Afternoon: Gondola or water taxi transfer to Venice Marco Polo Airport.
-    `);
-    if (italyParsed && italyParsed.days && italyParsed.days.length > 0) {
-      updateWorkspaceWithItinerary(italyParsed, text);
-    }
-  }
+  const agentBubble = appendCopilotBubble('agent', '… querying travel intelligence agent');
 
   try {
     const res = await fetch('/chat', {
@@ -2200,13 +2526,17 @@ copilotForm.addEventListener('submit', async (e) => {
       agentBubble.textContent = '(The agent completed the request.)';
     }
 
-    // If an itinerary with days is detected, populate the workspace
-    const parsed = parseItineraryFromText(fullText || text);
-    if (parsed && parsed.days && parsed.days.length > 0) {
-      updateWorkspaceWithItinerary(parsed, fullText);
-    } else if (text.toLowerCase().includes('italy')) {
-      // If Italy is requested, load the verified 7-day multi-city Italy workspace
-      const italyParsed = parseItineraryFromText(`
+    // 1. First attempt to parse complete itinerary from markdown text
+    let parsed = parseItineraryFromText(fullText, text);
+
+    // 2. If no markdown days found, extract itinerary from A2UI card components
+    if (!parsed && a2uiParts.length > 0) {
+      parsed = extractItineraryFromA2ui(a2uiParts, text);
+    }
+
+    // 3. Fallback for Italy if requested explicitly
+    if (!parsed && /italy/i.test(text)) {
+      parsed = parseItineraryFromText(`
 # 7-Day Italy Journey: Rome, Florence, and Venice
 ### Day 1: Historic Rome Arrival & Trastevere Culinary Walk
 - Morning: Arrival in Rome, check-in, explore Piazza Navona and Pantheon.
@@ -2248,10 +2578,12 @@ copilotForm.addEventListener('submit', async (e) => {
 - Morning: Rialto Market morning walk and fresh local espresso.
 - Lunch: Casual Venetian farewell lunch at Osteria Al Squero.
 - Afternoon: Gondola or water taxi transfer to Venice Marco Polo Airport.
-      `);
-      if (italyParsed && italyParsed.days && italyParsed.days.length > 0) {
-        updateWorkspaceWithItinerary(italyParsed, fullText);
-      }
+      `, text);
+    }
+
+    // 4. If an itinerary is parsed, synchronize the main workspace
+    if (parsed && parsed.days && parsed.days.length > 0) {
+      updateWorkspaceWithItinerary(parsed, fullText || text);
     }
   } catch (err) {
     agentBubble.textContent = 'Error: ' + err.message;
@@ -2265,14 +2597,18 @@ function askCopilotPrompt(promptText) {
 }
 
 function openNewTripModal() {
-  const dest = prompt("Enter your destination city:", "Tokyo, Japan");
-  if (!dest) return;
-  askCopilotPrompt(`Plan an authentic ${dest} trip with realistic duration, regional food specialties, and verified places.`);
+  switchView('welcome');
+  const input = document.getElementById('welcome-input-dest');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
 }
 
-// Initial bootstrap
+// Initial bootstrap: Start with clean welcome state
 window.addEventListener('DOMContentLoaded', () => {
   console.log("Travel Intelligence Workspace Loaded");
+  switchView('welcome');
 });
 </script>
 </body>

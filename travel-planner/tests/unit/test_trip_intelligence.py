@@ -264,3 +264,38 @@ class TestItalyDestinationConsistency:
         assert res["valid"] is True
         assert len(res["errors"]) == 0
 
+
+class TestHyderabadDestinationIntelligence:
+    """Test suite for Hyderabad trip parsing, regional cuisine grounding, and events."""
+
+    def test_hyderabad_culinary_grounding(self):
+        """Hyderabad culinary lookup returns authentic Nizami specialties without leakage."""
+        context = get_culinary_context("Hyderabad")
+        assert context is not None
+        assert "Hyderabad" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Dum Biryani" in d for d in dishes)
+        assert any("Haleem" in d for d in dishes)
+        assert any("Irani Chai" in d for d in dishes)
+        assert any("Mirchi ka Salan" in d for d in dishes)
+        assert not any("Pizza" in d or "Sushi" in d or "Cacio e Pepe" in d for d in dishes)
+
+    def test_hyderabad_seasonal_events(self):
+        """Hyderabad seasonal events discovery finds verified local cultural festivals."""
+        from app.events_data import find_seasonal_events
+        res = find_seasonal_events("Hyderabad")
+        assert res["count"] >= 2
+        names = [e["name"] for e in res["events_found"]]
+        assert any("Numaish" in n for n in names)
+        assert any("Deccan Festival" in n or "Bonalu" in n for n in names)
+
+    def test_hyderabad_duration_parsing(self):
+        """Hyderabad prompt with specified or unspecified duration parses cleanly."""
+        res_default = parse_trip_duration("Plan an authentic Hyderabad, India trip with realistic duration, regional food specialties, and verified places.")
+        assert res_default["num_days"] == 7
+        assert res_default["is_default"] is True
+
+        res_explicit = parse_trip_duration("3-day Hyderabad heritage trip")
+        assert res_explicit["num_days"] == 3
+        assert res_explicit["is_default"] is False
+
