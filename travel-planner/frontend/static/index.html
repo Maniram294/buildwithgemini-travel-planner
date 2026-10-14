@@ -1892,6 +1892,7 @@ async function generateNewTrip(promptText) {
       if (canonRes.ok) {
         canonicalData = await canonRes.json();
         if (canonicalData && canonicalData.days && canonicalData.days.length > 0) {
+          window.canonicalTripState = canonicalData;
           parsed = {
             destination: canonicalData.destination,
             days: canonicalData.days.map(d => ({
@@ -3079,14 +3080,24 @@ copilotForm.addEventListener('submit', async (e) => {
   const agentBubble = appendCopilotBubble('agent', '… querying travel intelligence agent');
 
   try {
-    const activeTripPayload = dynamicItinerary ? {
+    const activeTripPayload = window.canonicalTripState || (dynamicItinerary ? {
       destination: dynamicItinerary.destination,
+      duration_days: dynamicItinerary.days?.length || 7,
       days: (dynamicItinerary.days || []).map(d => ({
-        dayNumber: d.dayNumber,
-        title: d.title,
-        activities: (d.activities || []).map(a => a.title)
+        day_number: d.dayNumber,
+        city: dynamicItinerary.destination,
+        district: 'Center',
+        theme: d.title,
+        summary: d.summary || '',
+        transit_overview: d.raw || 'Standard routes',
+        activities: (d.activities || []).map(a => ({
+          slot: a.slot,
+          title: a.title,
+          description: a.desc || '',
+          estimated_cost: { amount: 15.0, currency: 'USD' }
+        }))
       }))
-    } : null;
+    } : null);
 
     const res = await fetch('/chat', {
       method: 'POST',
@@ -3094,6 +3105,7 @@ copilotForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({
         message: text,
         user_id: 'web-user',
+        selected_day: currentDay,
         active_trip: activeTripPayload
       })
     });
@@ -3120,35 +3132,50 @@ copilotForm.addEventListener('submit', async (e) => {
       agentBubble.textContent = '(The agent completed the request.)';
     }
 
-    // --- COPILOT WORKFLOW: Question Answering & Targeted Edits ---
-    // Rule: Trip Copilot answers questions without wiping/replacing the active trip.
-    // If the user explicitly asks for a targeted adjustment (e.g. "replace tomorrow's lunch with..."):
-    const isTargetedMealEdit = /replace\s+(?:tomorrow'?s?|day\s*(\d+))?\s*(lunch|dinner|morning|afternoon)\s+with\s+(.+)/i.exec(text) ||
-                              /(?:change|swap|update)\s+(?:tomorrow'?s?|day\s*(\d+))?\s*(lunch|dinner|morning|afternoon)\s+to\s+(.+)/i.exec(text);
-
-    if (isTargetedMealEdit && dynamicItinerary && dynamicItinerary.days) {
-      const targetDayNum = isTargetedMealEdit[1] ? parseInt(isTargetedMealEdit[1], 10) : (currentDay === 1 ? 2 : currentDay);
-      const targetSlot = isTargetedMealEdit[2].toLowerCase();
-      const newPlaceName = isTargetedMealEdit[3].replace(/[.,!]+$/, '').trim();
-
-      const dayObj = dynamicItinerary.days.find(d => d.dayNumber === targetDayNum);
-      if (dayObj && dayObj.activities) {
-        const act = dayObj.activities.find(a => a.slot.toLowerCase() === targetSlot);
-        if (act) {
-          act.title = newPlaceName;
-          act.desc = `Updated dining reservation at ${newPlaceName} featuring verified authentic cuisine.`;
-          renderDayWorkspace(currentDay);
-          appendCopilotBubble('agent', `✅ Successfully updated <strong>Day ${targetDayNum} ${act.slot}</strong> to <strong>${newPlaceName}</strong> without altering the rest of your itinerary!`);
-          return;
-        }
+    // --- COPILOT WORKFLOW: Question Answering, Targeted Edits, & Re-planning ---
+    // If backend returned a modified canonical trip:
+    if (data.modified_trip && data.modified_trip.days) {
+      const canon = data.modified_trip;
+      window.canonicalTripState = canon;
+      const updatedPlan = {
+        destination: canon.destination,
+        days: canon.days.map(d => ({
+          dayNumber: d.day_number,
+          title: `${d.city}: ${d.theme}`,
+          summary: d.summary,
+          raw: d.transit_overview,
+          activities: d.activities.map(a => ({
+            slot: a.slot,
+            title: a.title,
+            desc: a.description,
+            bestTime: a.best_time_to_visit,
+            cost: a.estimated_cost ? `${a.estimated_cost.amount} ${a.estimated_cost.currency}` : null,
+            isVerified: a.verification?.status === 'verified',
+            mapsUrl: a.google_maps_url,
+            directionsUrl: a.directions_url
+          }))
+        })),
+        feasibilityReport: canon.feasibility_report,
+        intercityTransfers: canon.intercity_transfers,
+        totalBudget: `${canon.total_budget_per_person} ${canon.currency}`
+      };
+      dynamicItinerary = updatedPlan;
+      
+      // Update Hero Budget & Feasibility
+      const metaBudget = document.getElementById('meta-budget');
+      if (metaBudget) metaBudget.textContent = updatedPlan.totalBudget;
+      if (updatedPlan.feasibilityReport) {
+        const scoreVal = document.getElementById('feasibility-score-val');
+        if (scoreVal) scoreVal.textContent = `${updatedPlan.feasibilityReport.overall_score || 96}/100`;
       }
+      
+      // Re-render current day schedule
+      renderDayWorkspace(currentDay);
+      return;
     }
 
-    // Check if the user is explicitly requesting a brand new trip generation inside Copilot
-    const isNewPlanRequest = /^(?:plan|create|generate)\s+(?:a\s+)?(?:new\s+)?(?:trip|itinerary)\s+(?:for|to)\s+([a-zA-Z\s,]+)/i.exec(text);
-    if (isNewPlanRequest && isNewPlanRequest[1]) {
-      const destCandidate = isNewPlanRequest[1].trim();
-      appendCopilotBubble('agent', `Switching to New Plan workflow to generate your itinerary for <strong>${destCandidate}</strong>…`);
+    // Check if user is triggering new plan
+    if (data.action === 'trigger_new_plan' || (data.intent === 'new_trip' && data.destination)) {
       generateNewTrip(text);
       return;
     }

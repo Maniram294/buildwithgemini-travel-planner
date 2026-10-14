@@ -246,10 +246,13 @@ try:
         sys.path.insert(0, parent_dir)
     from app.multi_agent.orchestrator import MultiAgentTravelOrchestrator
     from app.trip_validator import validate_canonical_trip
+    from app.copilot_engine import TripCopilotEngine
     _orchestrator = MultiAgentTravelOrchestrator()
+    _copilot_engine = TripCopilotEngine()
 except Exception as e:
-    print(f"Error loading orchestrator or validator: {e}")
+    print(f"Error loading orchestrator, validator, or copilot engine: {e}")
     _orchestrator = None
+    _copilot_engine = None
 
 @app.post("/api/trip/canonical")
 async def get_canonical_trip(req: Request):
@@ -278,14 +281,44 @@ async def chat(req: Request):
     body = await req.json()
     raw_message = body.get("message", "")
     user_id = body.get("user_id") or "web-user"
-    active_trip = body.get("active_trip")
+    active_trip_raw = body.get("active_trip")
+    selected_day = body.get("selected_day")
     parts: list[dict] = []
+
+    # If CopilotEngine is available and active trip exists or discovery/targeted modification is requested:
+    if _copilot_engine:
+        active_trip_model = None
+        if active_trip_raw and isinstance(active_trip_raw, dict):
+            try:
+                # Attempt to parse into CanonicalTripState
+                from app.trip_models import CanonicalTripState
+                active_trip_model = CanonicalTripState.model_validate(active_trip_raw)
+            except Exception:
+                # Fallback: if client passes partial active_trip, reconstruct or use as-is
+                active_trip_model = None
+
+        intent = _copilot_engine.classify_intent(raw_message, active_trip_model)
+        
+        # If user asks information about the active trip, requests discovery, or requests targeted modification/replanning:
+        if active_trip_model or intent in ["discovery", "modification", "new_trip"]:
+            res = _copilot_engine.process_message(raw_message, active_trip=active_trip_model, selected_day=selected_day)
+            parts = [{"kind": "text", "text": res.get("reply", "")}]
+            
+            resp_dict = {
+                "parts": parts,
+                "intent": res.get("intent"),
+                "modified_trip": res.get("modified_trip"),
+                "proposals": res.get("proposals"),
+                "action": res.get("action"),
+                "destination": res.get("destination"),
+            }
+            return JSONResponse(resp_dict)
 
     # Ground conversational agent in client's active trip state if provided
     formatted_message = raw_message
-    if active_trip and isinstance(active_trip, dict):
-        dest = active_trip.get("destination", "Current Trip")
-        days = active_trip.get("days", [])
+    if active_trip_raw and isinstance(active_trip_raw, dict):
+        dest = active_trip_raw.get("destination", "Current Trip")
+        days = active_trip_raw.get("days", [])
         trip_ctx_lines = [f"[Active Workspace Trip: {dest}, {len(days)} Days]"]
         for d in days[:7]:
             d_num = d.get("dayNumber") or d.get("day_number")
@@ -337,8 +370,6 @@ async def chat(req: Request):
                 parts.extend(_extract_parts(artifact.parts))
 
     if not parts:
-        # The turn produced no text or UI (e.g. the agent only ran tools, or a
-        # tool stalled). Be honest rather than silent.
         parts = [{"kind": "text", "text": "I researched the live details for your active trip but encountered no textual response. Let me know if you would like me to lookup specific places, transit schedules, or dining spots!"}]
     return JSONResponse({"parts": parts})
 
