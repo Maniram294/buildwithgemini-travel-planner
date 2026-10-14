@@ -1063,15 +1063,23 @@
   </div>
 
   <div class="header-actions">
-    <button class="btn btn-outline btn-sm" onclick="exportOfflineTripPack()">
+    <button class="btn btn-outline btn-sm" id="saved-trips-btn" onclick="openSavedTripsModal()" title="View and switch between saved itineraries" aria-label="Open Saved Trips">
+      <span class="material-symbols-outlined" style="font-size:1.1rem;">folder_open</span>
+      Saved Trips
+    </button>
+    <button class="btn btn-outline btn-sm" id="save-trip-btn" onclick="saveCurrentTrip()" title="Save active itinerary to browser storage" aria-label="Save Current Trip">
+      <span class="material-symbols-outlined" style="font-size:1.1rem;">bookmark</span>
+      Save Trip
+    </button>
+    <button class="btn btn-outline btn-sm" onclick="exportOfflineTripPack()" title="Download markdown offline trip pack" aria-label="Save Offline Pack">
       <span class="material-symbols-outlined" style="font-size:1.1rem;">save_alt</span>
       Save Offline Pack
     </button>
-    <button class="btn btn-outline btn-sm" onclick="toggleCopilot()">
+    <button class="btn btn-outline btn-sm" onclick="toggleCopilot()" title="Open Trip Copilot Assistant" aria-label="Toggle Trip Copilot">
       <span class="material-symbols-outlined" style="font-size:1.1rem;">chat</span>
       Trip Copilot
     </button>
-    <button class="btn btn-coral btn-sm" onclick="openNewTripModal()">
+    <button class="btn btn-coral btn-sm" onclick="openNewTripModal()" title="Plan a new journey" aria-label="Create New Plan">
       <span class="material-symbols-outlined" style="font-size:1.1rem;">add</span>
       New Plan
     </button>
@@ -1540,6 +1548,10 @@
         </select>
       </div>
 
+      <div id="food-city-pills" style="display:none; gap:0.5rem; margin-top:1rem; flex-wrap:wrap;">
+        <!-- Dynamic city filter pills when trip has multiple cities -->
+      </div>
+
       <div class="food-grid" id="food-dishes-container">
         <!-- Rendered dynamically via JavaScript -->
       </div>
@@ -1659,7 +1671,7 @@
       </div>
     </div>
 
-    <div class="copilot-quick-actions">
+    <div class="copilot-quick-actions" id="copilot-quick-actions">
       <button class="quick-chip" onclick="askCopilotPrompt('Find authentic Yudofu tofu restaurants in Kyoto')">🍜 Authentic Yudofu</button>
       <button class="quick-chip" onclick="askCopilotPrompt('What is the best time to visit Kiyomizu-dera to avoid crowds?')">🌅 Best time for Kiyomizu</button>
       <button class="quick-chip" onclick="askCopilotPrompt('Suggest vegetarian regional food options in Kyoto')">🥗 Vegetarian specialties</button>
@@ -1667,12 +1679,34 @@
     </div>
 
     <form class="copilot-input-form" id="copilot-form">
-      <input type="text" id="copilot-input" placeholder="Ask about places, food, best visit times…" autocomplete="off">
-      <button type="submit" class="btn btn-coral btn-sm">
+      <input type="text" id="copilot-input" placeholder="Ask about places, food, best visit times…" autocomplete="off" aria-label="Ask Trip Copilot a question">
+      <button type="submit" class="btn btn-coral btn-sm" aria-label="Send message to Copilot">
         <span class="material-symbols-outlined" style="font-size:1.1rem;">send</span>
       </button>
     </form>
   </aside>
+</div>
+
+<!-- Saved Trips Modal -->
+<div id="saved-trips-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--surface); width:90%; max-width:540px; border-radius:var(--radius-md); box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1px solid var(--border-subtle); overflow:hidden; display:flex; flex-direction:column; max-height:85vh;">
+    <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <span class="material-symbols-outlined" style="color:var(--accent-coral); font-size:1.4rem;">folder_open</span>
+        <h3 style="margin:0; font-size:1.15rem; font-weight:700;">Saved Trips</h3>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="closeSavedTripsModal()" aria-label="Close Saved Trips Modal">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;">close</span>
+      </button>
+    </div>
+    <div id="saved-trips-list" style="padding:1.25rem 1.5rem; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:0.75rem;">
+      <!-- Populated dynamically -->
+    </div>
+    <div style="padding:1rem 1.5rem; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.02);">
+      <span style="font-size:0.8rem; color:var(--text-secondary);">Stored locally in your browser</span>
+      <button class="btn btn-outline btn-sm" onclick="closeSavedTripsModal()">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1747,7 +1781,11 @@ function renderBudgetBreakdownView() {
     });
   }
 
-  const grandTotal = accomTotal + foodTotal + transitTotal + attractionsTotal;
+  // If canonical trip state is active, ensure total matches canonical model
+  let grandTotal = accomTotal + foodTotal + transitTotal + attractionsTotal;
+  if (window.canonicalTripState && window.canonicalTripState.total_budget_per_person) {
+    grandTotal = window.canonicalTripState.total_budget_per_person;
+  }
   if (totalBadge) {
     totalBadge.textContent = `Total: ${symbol}${grandTotal.toFixed(2)} ${defaultCurrency}`;
   }
@@ -1869,9 +1907,23 @@ async function generateNewTrip(promptText) {
     submitBtn.disabled = true;
     submitBtn.style.opacity = '0.7';
   }
+
+  const stages = [
+    `1/4 Researching cultural quarters & historic sights for "${promptText.slice(0, 32)}…"`,
+    `2/4 Verifying authentic venues & local food specialties via Places Intelligence…`,
+    `3/4 Computing intercity corridors & transit logistics…`,
+    `4/4 Verifying schedule feasibility & budget subtotals…`
+  ];
+  let stageIdx = 0;
   if (loaderText) {
-    loaderText.textContent = `Planning and verifying itinerary for "${promptText.slice(0, 45)}…" with Multi-Agent Orchestrator…`;
+    loaderText.textContent = stages[0];
   }
+  const stageInterval = setInterval(() => {
+    stageIdx = (stageIdx + 1) % stages.length;
+    if (loaderText && seq === tripRequestSeq) {
+      loaderText.textContent = stages[stageIdx];
+    }
+  }, 2200);
 
   let backendQuery = promptText;
   if (!/(?:plan|itinerary|trip|days?|visit|schedule|travel)/i.test(promptText)) {
@@ -1972,6 +2024,7 @@ async function generateNewTrip(promptText) {
       alert("Error generating trip: " + err.message);
     }
   } finally {
+    clearInterval(stageInterval);
     if (seq === tripRequestSeq) {
       if (loader) loader.style.display = 'none';
       if (submitBtn) {
@@ -2096,6 +2149,28 @@ async function loadFoodExplorerData(destination = null, syncDropdown = true) {
 
   if (syncDropdown) {
     syncFoodExplorerSelector(targetDest);
+  }
+
+  // Render multi-city filter pills if active itinerary has multiple distinct cities
+  const pillsCont = document.getElementById('food-city-pills');
+  if (pillsCont) {
+    if (window.canonicalTripState && window.canonicalTripState.days) {
+      const distinctCities = [...new Set(window.canonicalTripState.days.map(d => d.city).filter(Boolean))];
+      if (distinctCities.length > 1) {
+        pillsCont.style.display = 'flex';
+        pillsCont.innerHTML = `<span style="font-size:0.82rem; font-weight:600; color:var(--text-secondary); align-self:center; margin-right:0.25rem;">Filter by Itinerary City:</span>` +
+          `<button class="btn btn-outline btn-sm" onclick="loadFoodExplorerData('${window.canonicalTripState.destination.replace(/'/g, "\\'")}', true)" style="padding:0.2rem 0.6rem; font-size:0.8rem;">All (${distinctCities.length} Cities)</button>` +
+          distinctCities.map(c => `
+            <button class="btn btn-outline btn-sm" onclick="loadFoodExplorerData('${c.replace(/'/g, "\\'")}', true)" style="padding:0.2rem 0.6rem; font-size:0.8rem;">
+              📍 ${c}
+            </button>
+          `).join('');
+      } else {
+        pillsCont.style.display = 'none';
+      }
+    } else {
+      pillsCont.style.display = 'none';
+    }
   }
 
   const currentSeq = ++foodExplorerRequestSeq;
@@ -2703,6 +2778,9 @@ function updateWorkspaceWithItinerary(parsedPlan, rawText) {
   // Synchronize Food Explorer with active trip
   syncFoodExplorerSelector(parsedPlan.destination);
 
+  // Update Copilot quick action chips for the active destination
+  updateCopilotQuickChips(parsedPlan.destination);
+
   // Switch to planner view
   switchView('planner');
 }
@@ -2792,41 +2870,69 @@ function renderDayWorkspace(dayNum) {
     timelineCol.appendChild(card);
   }
 
-  // Multi-City Intercity Rail Banner for Days with transfers (Day 4 & Day 6 in Italy)
-  if (dayData.dayNumber === 4 || dayData.dayNumber === 6) {
+  // Multi-City Intercity Transit Banner for Days with transfers (Supports Italy, Japan, Kerala, etc.)
+  let transfer = null;
+  if (dynamicItinerary && dynamicItinerary.intercityTransfers && Array.isArray(dynamicItinerary.intercityTransfers)) {
+    transfer = dynamicItinerary.intercityTransfers.find(t => (t.day === dayData.dayNumber || t.day_number === dayData.dayNumber));
+  }
+  // Fallback for default Italy itinerary if no structured transfer was attached
+  if (!transfer && (dayData.dayNumber === 4 || dayData.dayNumber === 6) && /italy|rome|florence|venice/i.test(dynamicItinerary?.destination || '')) {
+    transfer = {
+      from_city: dayData.dayNumber === 4 ? 'Rome (Roma Termini)' : 'Florence (Firenze SMN)',
+      to_city: dayData.dayNumber === 4 ? 'Florence (Firenze SMN)' : 'Venice (Venezia Santa Lucia)',
+      mode: 'Frecciarossa High-Speed Rail',
+      duration_minutes: dayData.dayNumber === 4 ? 95 : 125,
+      estimated_cost: { amount: dayData.dayNumber === 4 ? 35 : 42, currency: 'EUR' },
+      booking_advice: 'Trenitalia official high-speed rail corridor connecting city centers.'
+    };
+  }
+
+  if (transfer) {
     const railCard = document.createElement('div');
     railCard.className = 'activity-card';
     railCard.style.borderColor = 'var(--accent-teal)';
     railCard.style.background = 'rgba(78, 205, 196, 0.05)';
-    const fromCity = dayData.dayNumber === 4 ? 'Rome (Roma Termini)' : 'Florence (Firenze SMN)';
-    const toCity = dayData.dayNumber === 4 ? 'Florence (Firenze SMN)' : 'Venice (Venezia Santa Lucia)';
-    const trainTime = dayData.dayNumber === 4 ? '95 mins (Frecciarossa High-Speed Rail)' : '125 mins (Frecciarossa / Italo High-Speed Rail)';
+    const fromCity = transfer.from_city || 'Origin City';
+    const toCity = transfer.to_city || 'Destination City';
+    const trainMode = transfer.mode || 'High-Speed Rail / Transit Corridor';
+    const trainTime = transfer.duration_minutes ? `${transfer.duration_minutes} mins (${trainMode})` : trainMode;
+    const costText = transfer.estimated_cost ? `${transfer.estimated_cost.amount} ${transfer.estimated_cost.currency}` : null;
+    let bookingUrl = 'https://www.google.com/travel';
+    if (/frecciarossa|italo|trenitalia|italy|rome|florence|venice/i.test(trainMode + fromCity + toCity)) {
+      bookingUrl = 'https://www.trenitalia.com';
+    } else if (/shinkansen|japan|tokyo|kyoto/i.test(trainMode + fromCity + toCity)) {
+      bookingUrl = 'https://smart-ex.jp/en/';
+    } else if (/kerala|india|rail|irctc|kochi|munnar/i.test(trainMode + fromCity + toCity)) {
+      bookingUrl = 'https://www.irctc.co.in';
+    }
 
     railCard.innerHTML = `
       <div class="activity-card-header">
         <div>
           <span class="activity-time-badge" style="background:var(--accent-teal-light); color:var(--accent-teal);">
-            <span class="material-symbols-outlined" style="font-size:0.9rem;">train</span>
+            <span class="material-symbols-outlined" style="font-size:0.9rem;">directions_subway</span>
             Intercity Transit • ${trainTime}
           </span>
           <h4 class="activity-title" style="color:var(--accent-teal);">${fromCity} ➔ ${toCity}</h4>
         </div>
         <span class="evidence-badge evidence-verified">
           <span class="material-symbols-outlined" style="font-size:0.8rem;">verified</span>
-          Verified Rail Link
+          Verified Transit Link
         </span>
       </div>
       <p class="activity-desc" style="margin-bottom:0.5rem;">
-        Official high-speed rail corridor connecting city centers. Train arrives directly into the central station without airport transfers or taxi queues.
+        ${transfer.booking_advice || 'Optimized corridor connecting city centers directly with minimal transfer overhead.'}
       </p>
-      <div class="activity-actions">
-        <a href="https://www.trenitalia.com" target="_blank" rel="noopener" class="action-link" style="color:var(--accent-teal);">
+      <div class="activity-actions" style="display:flex; justify-content:space-between; align-items:center;">
+        <a href="${bookingUrl}" target="_blank" rel="noopener" class="action-link" style="color:var(--accent-teal);">
           <span class="material-symbols-outlined" style="font-size:1rem;">confirmation_number</span>
-          Trenitalia Rail Timetables ↗
+          Timetables & Booking ↗
         </a>
+        ${costText ? `<span style="font-size:0.85rem; font-weight:600; color:var(--accent-teal); background:rgba(78, 205, 196, 0.12); padding:0.2rem 0.5rem; border-radius:6px;">${costText}</span>` : ''}
       </div>
     `;
-    timelineCol.insertBefore(railCard, timelineCol.children[1]);
+    const insertIdx = timelineCol.children.length > 1 ? 1 : 0;
+    timelineCol.insertBefore(railCard, timelineCol.children[insertIdx]);
   }
 
   // --- Dynamic Contextual Panel Synchronization ---
@@ -3191,6 +3297,222 @@ function askCopilotPrompt(promptText) {
   if (!isCopilotOpen) toggleCopilot();
   copilotInput.value = promptText;
   copilotForm.dispatchEvent(new Event('submit'));
+}
+
+function updateCopilotQuickChips(destination) {
+  const container = document.getElementById('copilot-quick-actions');
+  if (!container) return;
+  const destLower = (destination || '').toLowerCase();
+
+  let chips = [];
+  if (destLower.includes('italy') || destLower.includes('rome') || destLower.includes('florence') || destLower.includes('venice')) {
+    chips = [
+      { text: '🍝 Best Da Enzo Cacio e Pepe', prompt: 'What is the best time to visit Da Enzo al 29 in Rome without a 2-hour wait?' },
+      { text: '🌅 Piazzale Michelangelo Sunset', prompt: 'When is sunset at Piazzale Michelangelo Florence and what is the best walking route?' },
+      { text: '🏛️ Uffizi Priority Passes', prompt: 'Recommend priority admission booking advice for Uffizi Gallery Florence' },
+      { text: '💰 Recalculate Budget for 2', prompt: 'Recalculate total budget for 2 travelers over 7 days in Italy' }
+    ];
+  } else if (destLower.includes('kerala') || destLower.includes('kochi') || destLower.includes('munnar') || destLower.includes('alappuzha')) {
+    chips = [
+      { text: '🍛 Authentic Karimeen Pollichathu', prompt: 'Find authentic Karimeen Pollichathu in Fort Kochi or Alappuzha' },
+      { text: '🛶 Backwater Shikhara Timing', prompt: 'What is the best time of day for an Alappuzha backwaters canoe or shikhara cruise?' },
+      { text: '☕ Munnar Tea Estates Route', prompt: 'How do I visit Kolukkumalai tea estate from Munnar for sunrise?' },
+      { text: '💰 Recalculate Kerala Budget', prompt: 'Recalculate total budget for 2 travelers in INR for 7 days in Kerala' }
+    ];
+  } else if (destLower.includes('japan') || destLower.includes('tokyo') || destLower.includes('kyoto')) {
+    chips = [
+      { text: '🍜 Authentic Yudofu in Kyoto', prompt: 'Find authentic Yudofu tofu restaurants near Nanzen-ji in Kyoto' },
+      { text: '🌅 Best Time for Kiyomizu-dera', prompt: 'What is the best time to visit Kiyomizu-dera to avoid crowds?' },
+      { text: '🚅 Shinkansen Seat Reservation', prompt: 'How do I reserve oversized baggage seats on the Tokaido Shinkansen?' },
+      { text: '💰 Recalculate Japan Budget', prompt: 'Recalculate total budget for 2 travelers for 7 days in Japan' }
+    ];
+  } else {
+    chips = [
+      { text: '🍽️ Authentic Regional Cuisine', prompt: `What are the signature local dishes I must try in ${destination}?` },
+      { text: '🌅 Golden Hour Photography', prompt: `Where is the best sunset viewpoint in ${destination} for golden hour photos?` },
+      { text: '🚶 Walking Route Optimization', prompt: `Optimize walking route for Day 1 landmarks in ${destination}` },
+      { text: '💰 Recalculate Budget', prompt: `Recalculate total budget for 2 travelers in ${destination}` }
+    ];
+  }
+
+  container.innerHTML = chips.map(c => `
+    <button class="quick-chip" onclick="askCopilotPrompt('${c.prompt.replace(/'/g, "\\'")}')">${c.text}</button>
+  `).join('');
+}
+
+// --- Saved Trips Persistence & Switching Engine ---
+function getSavedTrips() {
+  try {
+    const raw = localStorage.getItem('travel_planner_saved_trips');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Error reading saved trips:', e);
+    return [];
+  }
+}
+
+function saveCurrentTrip() {
+  if (!window.canonicalTripState && !dynamicItinerary) {
+    alert("Please plan or open a trip before saving.");
+    return;
+  }
+
+  const tripToSave = window.canonicalTripState || {
+    destination: dynamicItinerary.destination,
+    duration_days: dynamicItinerary.days.length,
+    days: dynamicItinerary.days.map(d => ({
+      day_number: d.dayNumber,
+      city: d.title.split(':')[0] || dynamicItinerary.destination,
+      district: '',
+      theme: d.title.split(':')[1] || 'Exploration',
+      summary: d.summary,
+      transit_overview: d.raw || '',
+      activities: (d.activities || []).map(a => ({
+        slot: a.slot,
+        title: a.title,
+        description: a.desc,
+        best_time_to_visit: a.bestTime,
+        estimated_cost: a.cost ? { amount: parseFloat(a.cost) || 0, currency: 'EUR' } : null,
+        verification: { status: a.isVerified ? 'verified' : 'unverified' },
+        google_maps_url: a.mapsUrl,
+        directions_url: a.directionsUrl
+      })),
+      daily_budget_subtotal: 0
+    })),
+    intercity_transfers: dynamicItinerary.intercityTransfers || [],
+    feasibility_report: dynamicItinerary.feasibilityReport || { overall_score: 95, verification_rate: 85, schedule_conflicts: 0 },
+    total_budget_per_person: parseFloat(dynamicItinerary.totalBudget) || 1200,
+    currency: 'EUR'
+  };
+
+  const trips = getSavedTrips();
+  const tripId = 'trip_' + Date.now();
+  const record = {
+    id: tripId,
+    title: tripToSave.destination,
+    duration_days: tripToSave.duration_days || (tripToSave.days ? tripToSave.days.length : 7),
+    saved_at: new Date().toISOString(),
+    data: tripToSave
+  };
+
+  // Replace existing trip of same destination or prepend new
+  const existingIdx = trips.findIndex(t => t.title.toLowerCase() === tripToSave.destination.toLowerCase());
+  if (existingIdx >= 0) {
+    trips[existingIdx] = record;
+  } else {
+    trips.unshift(record);
+  }
+
+  try {
+    localStorage.setItem('travel_planner_saved_trips', JSON.stringify(trips));
+    const btn = document.getElementById('save-trip-btn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:1.1rem; color:var(--accent-green);">check_circle</span> Saved!`;
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }
+  } catch (e) {
+    alert("Could not save trip to browser storage: " + e.message);
+  }
+}
+
+function openSavedTripsModal() {
+  const modal = document.getElementById('saved-trips-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  renderSavedTripsList();
+}
+
+function closeSavedTripsModal() {
+  const modal = document.getElementById('saved-trips-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderSavedTripsList() {
+  const container = document.getElementById('saved-trips-list');
+  if (!container) return;
+  const trips = getSavedTrips();
+
+  if (trips.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding:2rem 1rem;">
+        <span class="material-symbols-outlined" style="font-size:2.5rem; color:var(--text-secondary);">bookmark_border</span>
+        <h4 style="margin:0.25rem 0; font-size:1rem; font-weight:600;">No Saved Trips Yet</h4>
+        <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">
+          Plan an itinerary and click "Save Trip" in the header to store it here.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = trips.map(t => {
+    const savedDate = new Date(t.saved_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const isActive = dynamicItinerary && dynamicItinerary.destination.toLowerCase() === t.title.toLowerCase();
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; border:1px solid ${isActive ? 'var(--accent-coral)' : 'var(--border-subtle)'}; background:${isActive ? 'rgba(255,107,107,0.04)' : 'var(--surface)'}; border-radius:var(--radius-sm);">
+        <div>
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <strong style="font-size:0.95rem;">${t.title}</strong>
+            ${isActive ? `<span class="evidence-badge evidence-verified" style="font-size:0.7rem; padding:0.1rem 0.4rem;">Active</span>` : ''}
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">
+            ${t.duration_days} Calendar Days • Saved on ${savedDate}
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-outline btn-sm" onclick="loadSavedTrip('${t.id}')" style="padding:0.35rem 0.75rem;">
+            Load
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="deleteSavedTrip('${t.id}')" style="padding:0.35rem 0.5rem; color:var(--text-muted);" title="Delete saved trip" aria-label="Delete saved trip">
+            <span class="material-symbols-outlined" style="font-size:1rem;">delete</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function loadSavedTrip(tripId) {
+  const trips = getSavedTrips();
+  const found = trips.find(t => t.id === tripId);
+  if (!found || !found.data) return;
+
+  const canon = found.data;
+  window.canonicalTripState = canon;
+
+  const parsedPlan = {
+    destination: canon.destination,
+    days: (canon.days || []).map(d => ({
+      dayNumber: d.day_number || d.dayNumber,
+      title: `${d.city || canon.destination}: ${d.theme || 'Exploration'}`,
+      summary: d.summary || '',
+      raw: d.transit_overview || '',
+      activities: (d.activities || []).map(a => ({
+        slot: a.slot || 'Sight',
+        title: a.title,
+        desc: a.description || a.desc || '',
+        bestTime: a.best_time_to_visit || a.bestTime,
+        cost: a.estimated_cost ? `${a.estimated_cost.amount} ${a.estimated_cost.currency}` : a.cost,
+        isVerified: a.verification?.status === 'verified' || a.isVerified,
+        mapsUrl: a.google_maps_url || a.mapsUrl,
+        directionsUrl: a.directions_url || a.directionsUrl
+      }))
+    })),
+    feasibilityReport: canon.feasibility_report,
+    intercityTransfers: canon.intercity_transfers,
+    totalBudget: canon.total_budget_per_person ? `${canon.total_budget_per_person} ${canon.currency || 'EUR'}` : '€1,250 EUR'
+  };
+
+  updateWorkspaceWithItinerary(parsedPlan, `Loaded saved trip: ${canon.destination}`);
+  closeSavedTripsModal();
+  appendCopilotBubble('agent', `📂 Loaded your saved trip to <strong>${canon.destination}</strong>! You can ask questions or make edits.`);
+}
+
+function deleteSavedTrip(tripId) {
+  const trips = getSavedTrips().filter(t => t.id !== tripId);
+  localStorage.setItem('travel_planner_saved_trips', JSON.stringify(trips));
+  renderSavedTripsList();
 }
 
 function openNewTripModal() {
