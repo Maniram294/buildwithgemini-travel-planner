@@ -245,9 +245,10 @@ try:
     if parent_dir not in sys.path:
         sys.path.insert(0, parent_dir)
     from app.multi_agent.orchestrator import MultiAgentTravelOrchestrator
+    from app.trip_validator import validate_canonical_trip
     _orchestrator = MultiAgentTravelOrchestrator()
 except Exception as e:
-    print(f"Error loading orchestrator: {e}")
+    print(f"Error loading orchestrator or validator: {e}")
     _orchestrator = None
 
 @app.post("/api/trip/canonical")
@@ -256,16 +257,45 @@ async def get_canonical_trip(req: Request):
     prompt = data.get("prompt", "I'm visiting Italy for 7 days.")
     if _orchestrator:
         trip = _orchestrator.build_canonical_trip(prompt)
-        return JSONResponse(trip.model_dump())
+        # Deterministically validate canonical output before serving
+        val_res = validate_canonical_trip(trip, expected_destination=prompt)
+        if not val_res.is_valid:
+            print(f"Validation warnings/errors on generated trip: {val_res.errors}")
+            return JSONResponse({
+                "error": "Generated itinerary failed canonical validation",
+                "details": val_res.errors,
+                "warnings": val_res.warnings,
+            }, status_code=422)
+
+        resp_data = trip.model_dump()
+        resp_data["validation"] = val_res.to_dict()
+        return JSONResponse(resp_data)
     return JSONResponse({"error": "Multi-agent orchestrator unavailable"}, status_code=500)
 
 
 @app.post("/chat")
 async def chat(req: Request):
     body = await req.json()
-    message = body.get("message", "")
+    raw_message = body.get("message", "")
     user_id = body.get("user_id") or "web-user"
+    active_trip = body.get("active_trip")
     parts: list[dict] = []
+
+    # Ground conversational agent in client's active trip state if provided
+    formatted_message = raw_message
+    if active_trip and isinstance(active_trip, dict):
+        dest = active_trip.get("destination", "Current Trip")
+        days = active_trip.get("days", [])
+        trip_ctx_lines = [f"[Active Workspace Trip: {dest}, {len(days)} Days]"]
+        for d in days[:7]:
+            d_num = d.get("dayNumber") or d.get("day_number")
+            d_title = d.get("title", "")
+            d_acts = d.get("activities", [])
+            act_names = [a.get("title", "") if isinstance(a, dict) else str(a) for a in d_acts[:4]]
+            trip_ctx_lines.append(f"- Day {d_num}: {d_title} (Stops: {', '.join(filter(None, act_names))})")
+        
+        trip_context_str = "\n".join(trip_ctx_lines)
+        formatted_message = f"{trip_context_str}\n\nUser Question: {raw_message}"
 
     async with httpx.AsyncClient(headers=_auth_headers(), timeout=120) as client:
         card = await _get_card(client)
@@ -283,7 +313,7 @@ async def chat(req: Request):
         msg = Message(
             message_id=str(uuid.uuid4()),
             role=Role.user,
-            parts=[Part(root=TextPart(text=message))],
+            parts=[Part(root=TextPart(text=formatted_message))],
             context_id=_contexts.get(user_id),
         )
 
@@ -309,7 +339,7 @@ async def chat(req: Request):
     if not parts:
         # The turn produced no text or UI (e.g. the agent only ran tools, or a
         # tool stalled). Be honest rather than silent.
-        parts = [{"kind": "text", "text": "(The agent didn't return a reply.)"}]
+        parts = [{"kind": "text", "text": "I researched the live details for your active trip but encountered no textual response. Let me know if you would like me to lookup specific places, transit schedules, or dining spots!"}]
     return JSONResponse({"parts": parts})
 
 

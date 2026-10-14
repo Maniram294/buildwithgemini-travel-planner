@@ -224,7 +224,8 @@ class MultiAgentTravelOrchestrator:
             intercity_transfers=transfers if len(days) >= 6 else transfers[:1],
         )
 
-        total_cost = sum(d.daily_budget_subtotal for d in trip.days)
+        transfer_costs = sum((t.estimated_cost.amount if t.estimated_cost else 0.0) for t in trip.intercity_transfers)
+        total_cost = sum(d.daily_budget_subtotal for d in trip.days) + transfer_costs
         trip.total_budget_per_person = round(total_cost, 2)
         trip.total_group_budget = round(total_cost * trip.group_size, 2)
         trip.feasibility_report = self.qa_agent.evaluate_trip_feasibility(trip)

@@ -29,8 +29,11 @@ class VerificationRecord(BaseModel):
     limitations: Optional[str] = None
 
 
+import uuid
+
+
 class Activity(BaseModel):
-    id: str = Field(default_factory=lambda: f"act_{datetime.datetime.now().strftime('%M%S%f')[:8]}")
+    id: str = Field(default_factory=lambda: f"act_{uuid.uuid4().hex[:10]}")
     slot: Literal["Morning", "Lunch", "Afternoon", "Evening"] = "Morning"
     time_window: str = "09:00 - 11:30"
     title: str
