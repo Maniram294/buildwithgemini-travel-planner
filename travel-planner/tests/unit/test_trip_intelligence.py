@@ -299,3 +299,38 @@ class TestHyderabadDestinationIntelligence:
         assert res_explicit["num_days"] == 3
         assert res_explicit["is_default"] is False
 
+
+class TestKeralaDestinationIntelligence:
+    """Test suite for Kerala trip parsing, regional cuisine grounding, and events."""
+
+    def test_kerala_culinary_grounding(self):
+        """Kerala culinary lookup returns authentic coastal specialties without Italian/Japanese leakage."""
+        context = get_culinary_context("Kerala")
+        assert context is not None
+        assert "Kerala" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Karimeen" in d for d in dishes)
+        assert any("Sadya" in d for d in dishes)
+        assert any("Appam" in d for d in dishes)
+        assert any("Thalassery" in d for d in dishes)
+        assert not any("Pizza" in d or "Sushi" in d or "Cacio e Pepe" in d for d in dishes)
+
+    def test_kerala_seasonal_events(self):
+        """Kerala seasonal events discovery finds verified local cultural festivals."""
+        from app.events_data import find_seasonal_events
+        res = find_seasonal_events("Kerala")
+        assert res["count"] >= 2
+        names = [e["name"] for e in res["events_found"]]
+        assert any("Boat Race" in n for n in names)
+        assert any("Biennale" in n or "Pooram" in n for n in names)
+
+    def test_kerala_duration_parsing(self):
+        """Kerala prompt with specified or unspecified duration parses cleanly."""
+        res_default = parse_trip_duration("Plan an authentic Kerala trip with realistic duration, regional food specialties, and verified places.")
+        assert res_default["num_days"] == 7
+        assert res_default["is_default"] is True
+
+        res_explicit = parse_trip_duration("6-day Kerala backwater and Munnar journey")
+        assert res_explicit["num_days"] == 6
+        assert res_explicit["is_default"] is False
+

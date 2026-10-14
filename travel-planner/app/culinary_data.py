@@ -310,6 +310,46 @@ REGIONAL_SPECIALTIES: Dict[str, Dict[str, Any]] = {
             {"neighborhood": "RTC X Roads & Musheerabad", "vibe": "Hub of iconic competing Biryani kitchens frequented by moviegoers and locals alike."},
             {"neighborhood": "Banjara Hills & Jubilee Hills", "vibe": "Refined modern Andhra and Telangana dining, microbreweries, and upscale Nizami fine-dining restaurants."}
         ]
+    },
+    "kerala": {
+        "destination": "Kerala, India",
+        "food_culture_summary": (
+            "Kerala cuisine ('God's Own Country') is characterized by abundant use of coconut, black pepper, curry leaves, "
+            "mustard seeds, and fresh seafood from the Malabar coast and backwaters. Meals balance vegetarian Sadya feasts "
+            "served on banana leaves with spicy Malabar and Syrian Christian seafood and meat preparations."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Karimeen Pollichathu",
+                "cultural_context": "Pearl spot fish marinated in shallots, ginger, garlic, and fiery red chili paste, wrapped tightly in a banana leaf and slow-roasted on a tawa.",
+                "typical_ordering_advice": "Best enjoyed on a backwater houseboat or at traditional toddy shops (shappu) around Alappuzha and Kumarakom."
+            },
+            {
+                "dish": "Kerala Sadya (Avial & Sambar)",
+                "cultural_context": "Elaborate vegetarian feast with up to 24 dishes served on a fresh plantain leaf, centered on Avial, Thoran, Kalan, and red Matta rice.",
+                "typical_ordering_advice": "Traditionally served for Onam and festive celebrations; order at Mothers Veg Plaza (Trivandrum) or Grand Hotel (Kochi)."
+            },
+            {
+                "dish": "Appam with Vegetable or Mutton Stew",
+                "cultural_context": "Fermented rice pancake with a soft, pillowy center and crispy lacy edges, paired with fragrant coconut-milk-based stew infused with whole spices.",
+                "typical_ordering_advice": "Classic Syrian Christian breakfast staple, widely available across Fort Kochi bakeries and heritage cafes."
+            },
+            {
+                "dish": "Malabar Porotta & Beef Roast / Pepper Fry",
+                "cultural_context": "Flaky, multi-layered unleavened wheat flatbread paired with slow-roasted meat tossed in caramelized coconut flakes, green chilies, and curry leaves.",
+                "typical_ordering_advice": "Iconic evening dinner street food at Malabar tea shops and Paragons in Kozhikode or Kochi."
+            },
+            {
+                "dish": "Thalassery Biryani",
+                "cultural_context": "Malabar Muslim fragrant biryani prepared with short-grain Kaima (Jeerakasala) rice, tender chicken or mutton, fried onions, cashews, and raisins.",
+                "typical_ordering_advice": "Distinct from long-grain Hyderabadi Dum Biryani; try at Paragon or Kayees Rahmathullah Cafe in Mattancherry."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Fort Kochi & Mattancherry", "vibe": "Colonial cafe culture, Jewish spice market streets, and historic fresh fish grilled to order near Chinese Nets."},
+            {"neighborhood": "Kozhikode (Calicut) Beach & SM Street", "vibe": "The culinary epicenter of Malabar: Halwa stalls, Banana chip fryers, and heritage biryani institutions."},
+            {"neighborhood": "Alappuzha Backwaters & Canal Shacks", "vibe": "Floating kitchens, spicy clay-pot fish curry meals, and freshly caught lake prawns."}
+        ]
     }
 }
 

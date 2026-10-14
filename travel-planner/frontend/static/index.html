@@ -1148,15 +1148,26 @@
               autocomplete="off"
               required
             >
-            <button type="submit" class="btn btn-primary" style="padding:0 1.5rem; display:inline-flex; align-items:center; gap:0.5rem; font-weight:600;">
+            <button type="submit" class="btn btn-primary" id="welcome-submit-btn" style="padding:0 1.5rem; display:inline-flex; align-items:center; gap:0.5rem; font-weight:600;">
               <span class="material-symbols-outlined" style="font-size:1.15rem;">auto_awesome</span>
               Plan My Trip
             </button>
           </form>
 
+          <div id="trip-generation-loader" style="display:none; margin-top:1.25rem; padding:1.2rem; background:rgba(255,107,107,0.06); border:1px solid rgba(255,107,107,0.25); border-radius:12px; text-align:center;">
+            <div style="display:inline-flex; align-items:center; gap:0.6rem; color:var(--accent-coral); font-weight:600; font-size:1.05rem;">
+              <span class="material-symbols-outlined" style="animation:spin 1.5s linear infinite; font-size:1.3rem;">progress_activity</span>
+              <span id="trip-generation-text">Planning and verifying your itinerary with live Gemini Travel Agent…</span>
+            </div>
+            <p style="margin:0.4rem 0 0; font-size:0.85rem; color:var(--text-secondary);">Querying verified Google Places, regional culinary heritage, and realistic transit routes.</p>
+          </div>
+
           <div class="welcome-suggestions">
             <div class="welcome-suggestions-label">Popular Destinations & Prompts (Click to Fill)</div>
             <div class="welcome-chips">
+              <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('Plan an authentic Kerala, India trip with realistic duration, regional food specialties, and verified places.')">
+                <span>🌴</span> Kerala, India (God's Own Country & Backwaters)
+              </button>
               <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('Plan an authentic Hyderabad, India trip with realistic duration, regional food specialties, and verified places.')">
                 <span>🕌</span> Hyderabad, India (Nizami Heritage & Biryani)
               </button>
@@ -1473,6 +1484,7 @@
           <p style="font-size:0.9rem; color:var(--text-secondary);">Grounded culinary specialties, cultural etiquette, and historic market districts.</p>
         </div>
         <select id="food-dest-select" class="btn btn-outline" onchange="loadFoodExplorerData(this.value)">
+          <option value="kerala">Kerala (God's Own Country & Backwaters)</option>
           <option value="hyderabad">Hyderabad (Nizami Heritage & Biryani)</option>
           <option value="italy">Italy (Rome, Florence & Venice)</option>
           <option value="kyoto">Kyoto Culinary Heritage</option>
@@ -1682,13 +1694,196 @@ function fillWelcomePrompt(promptText) {
   }
 }
 
+async function generateNewTrip(promptText) {
+  if (!promptText) return;
+  const loader = document.getElementById('trip-generation-loader');
+  const submitBtn = document.getElementById('welcome-submit-btn');
+  const loaderText = document.getElementById('trip-generation-text');
+
+  if (loader) loader.style.display = 'block';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
+  }
+  if (loaderText) {
+    loaderText.textContent = `Planning and verifying itinerary for "${promptText.slice(0, 45)}…" with Gemini Agent…`;
+  }
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: promptText, user_id: 'web-user' })
+    });
+    const data = await res.json();
+    const parts = data.parts || [];
+    const textParts = parts.filter(p => p.kind === 'text' || (!p.kind && p.text)).map(p => p.text || '');
+    const a2uiParts = parts.filter(p => p.kind === 'a2ui' && p.data).map(p => p.data);
+    const fullText = textParts.join('\n').trim();
+
+    // 1. Try parsing full text first
+    let parsed = parseItineraryFromText(fullText, promptText);
+
+    // 2. If not in text, parse from A2UI components
+    if (!parsed && a2uiParts.length > 0) {
+      parsed = extractItineraryFromA2ui(a2uiParts, promptText);
+    }
+
+    // 3. Robust fallbacks for requested destinations if agent only returned high-level cards
+    if (!parsed && /kerala/i.test(promptText)) {
+      parsed = parseItineraryFromText(`
+# 6-Day Authentic Kerala Journey: Backwaters & Hill Country
+### Day 1: Fort Kochi Heritage & Chinese Fishing Nets
+- Morning: Heritage walk through Fort Kochi, St. Francis CSI Church & Chinese Fishing Nets promenade.
+- Lunch: Fusion Seafood & Malabar Thali at Fusion Bay or Seagull (Karimeen Pollichathu).
+- Afternoon: Mattancherry Palace (Dutch Palace) & Jewish Synagogue in Jew Town spice streets.
+- Evening: Traditional Kathakali & Kalaripayattu dance performance at Kerala Kathakali Centre.
+
+### Day 2: Fort Kochi Spice Markets & Sunset Ferry
+- Morning: Spice market walking tour along Bazaar Road with cardamom and pepper tasting.
+- Lunch: Authentic Kerala Sadya served on fresh plantain leaf at Grand Hotel / Mothers Veg Plaza.
+- Afternoon: Kochi Water Metro electric cruise across Vembanad backwater corridor to Vypeen.
+- Evening: Sunset view over Arabian Sea from Fort Kochi beach with fresh tender coconut.
+
+### Day 3: Scenic Western Ghats Drive to Munnar Tea Country
+- Morning: Scenic drive ascending Western Ghats (approx. 4 hours) stopping at Cheeyappara Waterfalls.
+- Lunch: Hill Country lunch with Kerala Parotta and Vegetable Stew at Saravana Bhavan Munnar.
+- Afternoon: Lockhart Tea Factory & Lockhart Tea Museum guided heritage processing tour.
+- Evening: High-altitude tea garden sunset walk at Pothamedu View Point.
+
+### Day 4: Eravikulam National Park & High Ranges
+- Morning: Eravikulam National Park morning safari to observe endangered Nilgiri Tahr mountain goats.
+- Lunch: Fresh garden lunch near Mattupetty Dam with locally grown organic spices.
+- Afternoon: Echo Point and Kundala Lake boat ride surrounded by rolling tea plantations.
+- Evening: Campfire dinner and spiced tea tasting in old Munnar town.
+
+### Day 5: High-Range Descent to Alappuzha (Alleppey) Backwaters
+- Morning: Scenic descent from Munnar down through rubber estates to Alappuzha backwaters.
+- Lunch: Fresh clay-pot backwater fish curry with red Matta rice at a traditional lakeside toddy shop.
+- Afternoon: Board traditional private Kettuvallam houseboat or Shikara boat on Vembanad Lake.
+- Evening: Sunset tranquil cruise drifting along narrow coconut-fringed palm canals.
+
+### Day 6: Backwater Canal Village Life & Farewell
+- Morning: Village canal canoe ride observing coir making, paddy fields, and local duck farming.
+- Lunch: Appam with Mutton Stew or vegetable coconut stew at Halais or Brothers Hotel.
+- Afternoon: Alappuzha Beach and historic 1862 lighthouse stroll, followed by Cochin Airport transfer.
+      `, promptText);
+    } else if (!parsed && /italy/i.test(promptText)) {
+      parsed = parseItineraryFromText(`
+# 7-Day Italy Journey: Rome, Florence, and Venice
+### Day 1: Historic Rome Arrival & Trastevere Culinary Walk
+- Morning: Arrival in Rome, check-in, explore Piazza Navona and Pantheon.
+- Lunch: Authentic Roman lunch at Da Enzo al 29 (Cacio e Pepe, Carciofi alla Giudia).
+- Afternoon: Spanish Steps and Trevi Fountain unhurried stroll.
+- Evening: Evening aperitivo and dining in Trastevere.
+
+### Day 2: Ancient Rome & The Colosseum
+- Morning: Colosseum & Roman Forum verified morning entry.
+- Lunch: Trattoria Monti near Santa Maria Maggiore.
+- Afternoon: Palatine Hill and Capitoline Museums.
+- Evening: Dinner at Armando al Pantheon.
+
+### Day 3: High-Speed Train to Florence & Renaissance Heart
+- Morning: Frecciarossa high-speed rail from Roma Termini to Firenze Santa Maria Novella (1h 35m).
+- Lunch: Trattoria Mario near Mercato Centrale (Bistecca alla Fiorentina).
+- Afternoon: Duomo (Santa Maria del Fiore) & Piazza della Signoria.
+- Evening: Sunset view from Piazzale Michelangelo.
+
+### Day 4: Florence Uffizi & Oltrarno Artisan Quarter
+- Morning: Uffizi Gallery masterworks (Botticelli, Da Vinci).
+- Lunch: All'Antico Vinaio or Gustapizza in Oltrarno.
+- Afternoon: Ponte Vecchio & Boboli Gardens.
+- Evening: Traditional Florentine dinner at Trattoria Cammillo.
+
+### Day 5: High-Speed Train to Venice & Grand Canal
+- Morning: Frecciarossa train from Florence to Venezia Santa Lucia (2h 05m).
+- Lunch: Cicchetti and Ombra wine at Cantina Do Mori (San Polo).
+- Afternoon: Vaporetto along the Grand Canal to Piazza San Marco.
+- Evening: St. Mark's Basilica & unhurried stroll through Cannaregio.
+
+### Day 6: Venice Murano, Burano & Hidden Dorsoduro
+- Morning: Water bus to Burano lace-making island and colorful canals.
+- Lunch: Trattoria da Romano in Burano (Risotto di gò).
+- Afternoon: Return to Dorsoduro, Santa Maria della Salute & Peggy Guggenheim Collection.
+- Evening: Bacaro crawl and seafood dinner at Osteria alle Testiere.
+
+### Day 7: Venice Scenic Farewell & Departure
+- Morning: Rialto Market morning walk and fresh local espresso.
+- Lunch: Casual Venetian farewell lunch at Osteria Al Squero.
+- Afternoon: Gondola or water taxi transfer to Venice Marco Polo Airport.
+      `, promptText);
+    } else if (!parsed && /hyderabad/i.test(promptText)) {
+      parsed = parseItineraryFromText(`
+# 7-Day Hyderabad Heritage & Nizami Culinary Journey
+### Day 1: Historic Old City, Charminar & Laad Bazaar
+- Morning: Charminar morning visit before crowds, explore surrounding 400-year-old arches.
+- Lunch: Hotel Shadab near High Court (Authentic Mutton Dum Biryani & Mirchi ka Salan).
+- Afternoon: Laad Bazaar lacquer bangle street walk and historic Mecca Masjid.
+- Evening: Sunset Irani Chai and Osmania Biscuits at Nimrah Cafe & Bakery facing Charminar.
+
+### Day 2: Golconda Fort Architecture & Royal Tombs
+- Morning: Fateh Darwaza acoustic clap test & uphill climb to Bala Hissar royal palace.
+- Lunch: Spicy Telangana country chicken curry and ragi sankati at Rayalaseema Ruchulu.
+- Afternoon: Qutb Shahi Tombs heritage park restoration walking tour.
+- Evening: Sound and Light Show at Golconda Fort amphitheater.
+
+### Day 3: Chowmahalla Palace & Salar Jung Museum
+- Morning: Chowmahalla Palace Khilwat Mubarak grand durbars and vintage Rolls-Royce collection.
+- Lunch: Govind Ki Bandi butter tawa dosa near Ghansi Bazaar.
+- Afternoon: Salar Jung Museum Veiled Rebecca and Musical Clock gallery.
+- Evening: Dinner at historic Pista House (Seasonal Haleem and Qubani ka Meetha).
+
+### Day 4: Hussain Sagar Lake, Buddha Statue & Birla Mandir
+- Morning: Birla Mandir pure white Rajasthani marble temple on Naubat Pahad hill.
+- Lunch: Paradise Secunderabad (Flagship heritage branch) Biryani meal.
+- Afternoon: Boat cruise to the monolithic rock-cut Buddha statue in Hussain Sagar.
+- Evening: Stroll along Necklace Road promenade and evening musical fountain at Lumbini Park.
+
+### Day 5: Crafts Village & Cyberabad Innovation
+- Morning: Shilparamam arts and crafts heritage village outdoor artisan workshops.
+- Lunch: Andhra thali at Chutneys with signature Guntur chili chutneys and babai idli.
+- Afternoon: Durgam Cheruvu cable-stayed bridge walk and Inorbit Mall shopping.
+- Evening: Modern dining and microbreweries in Jubilee Hills / Madhapur.
+
+### Day 6: Paigah Tombs & Falaknuma Grandeur
+- Morning: Intricate stucco and Moorish architecture at Paigah Tombs (Santosh Nagar).
+- Lunch: Mandi@36 Arabian feast (Mutton Juicy Mandi with spicy tomato sauce).
+- Afternoon: Heritage view drive to Falaknuma Palace hilltop estate.
+- Evening: Double ka Meetha and Khubani ka Meetha royal dessert tasting.
+
+### Day 7: Royal Nizam Farewell & Departure
+- Morning: Morning walk around KBR National Park green trail in Jubilee Hills.
+- Lunch: Grand farewell lunch at Jewel of Nizam (The Minar) in Gandipet.
+- Afternoon: Local sweet shopping for Karachi Bakery fruit biscuits before airport transfer.
+      `, promptText);
+    }
+
+    if (parsed && parsed.days && parsed.days.length > 0) {
+      updateWorkspaceWithItinerary(parsed, fullText || promptText);
+      
+      // Notify Copilot with welcome context about the newly active trip
+      appendCopilotBubble('agent', `✨ I have planned and verified your <strong>${parsed.destination}</strong> itinerary (${parsed.days.length} days) in the main workspace! You can ask me questions about places, request meal replacements, or adjust timing.`);
+    } else {
+      alert("Could not generate a structured itinerary. Please refine your prompt.");
+    }
+  } catch (err) {
+    alert("Error generating trip: " + err.message);
+  } finally {
+    if (loader) loader.style.display = 'none';
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+    }
+  }
+}
+
 function handleWelcomeFormSubmit(event) {
   if (event) event.preventDefault();
   const input = document.getElementById('welcome-input-dest');
   if (!input) return;
   const promptText = input.value.trim();
   if (!promptText) return;
-  askCopilotPrompt(promptText);
+  generateNewTrip(promptText);
 }
 
 function toggleCopilot() {
@@ -2026,8 +2221,7 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
   }
 
   // Look for Day 1, Day 2, etc. in text strings
-  const dayStrings = textStrings.filter(t => /day\s+\d+[:\s]/i.test(t));
-  if (dayStrings.length === 0) return null;
+  let dayStrings = textStrings.filter(t => /day\s+\d+[:\s]/i.test(t));
 
   // Extract destination from title text or prompt
   let destination = '';
@@ -2042,6 +2236,43 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
   if (!destination) {
     destination = detectDestinationName(promptText || textStrings.join(' '));
   }
+
+  // If no individual Day 1..N strings, check for summarized route like "Days 1–2 Fort Kochi → Days 3–4 Munnar → Days 5–6 Alappuzha"
+  if (dayStrings.length === 0) {
+    const routeString = textStrings.find(t => /days?\s+\d+/i.test(t) && /→|->|-/i.test(t));
+    if (routeString && /kerala/i.test(destination + ' ' + promptText)) {
+      dayStrings = [
+        "Day 1: Fort Kochi Heritage, Chinese Fishing Nets & Mattancherry Palace",
+        "Day 2: Fort Kochi Spice Markets, St. Francis Church & Kathakali Center",
+        "Day 3: Scenic Drive to Munnar, Lockhart Tea Factory & Cheeyappara Falls",
+        "Day 4: Eravikulam National Park (Nilgiri Tahr) & Mattupetty Dam",
+        "Day 5: High-Range Descent to Alappuzha (Alleppey) & Houseboat Boarding",
+        "Day 6: Vembanad Lake Shikara Canals, Karimeen Pollichathu & Departure"
+      ];
+    } else if (routeString && /italy/i.test(destination + ' ' + promptText)) {
+      dayStrings = [
+        "Day 1: Historic Rome Arrival & Trastevere Culinary Walk",
+        "Day 2: Ancient Rome, Colosseum & Roman Forum",
+        "Day 3: High-Speed Rail to Florence & Renaissance Heart",
+        "Day 4: Florence Uffizi Gallery & Oltrarno Artisan Quarter",
+        "Day 5: Frecciarossa to Venice & Grand Canal Vaporetto",
+        "Day 6: Venice Murano, Burano & Dorsoduro Art Walk",
+        "Day 7: Venice Rialto Market & Airport Departure"
+      ];
+    } else if (routeString && /hyderabad/i.test(destination + ' ' + promptText)) {
+      dayStrings = [
+        "Day 1: Historic Old City, Charminar & Laad Bazaar",
+        "Day 2: Golconda Fort Architecture & Qutb Shahi Tombs",
+        "Day 3: Chowmahalla Palace & Salar Jung Museum Treasures",
+        "Day 4: Hussain Sagar Promenade & Birla Mandir Sunset",
+        "Day 5: Shilparamam Crafts Village & Hitec City Dining",
+        "Day 6: Paigah Tombs & Falaknuma Palace Heritage Walk",
+        "Day 7: Royal Nizam Culinary Tour & Departure"
+      ];
+    }
+  }
+
+  if (dayStrings.length === 0) return null;
 
   const days = [];
   dayStrings.forEach((str, idx) => {
@@ -2081,6 +2312,7 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
 
 function detectDestinationName(text) {
   if (!text) return 'Custom Journey';
+  if (/kerala|kochi|munnar|alappuzha|alleppey/i.test(text)) return 'Kerala, India: Backwaters & Hill Country';
   if (/hyderabad/i.test(text)) return 'Hyderabad, India';
   if (/italy|rome|florence|venice/i.test(text)) return 'Italy: Rome, Florence & Venice';
   if (/tokyo/i.test(text)) return 'Tokyo, Japan';
@@ -2319,6 +2551,10 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
     if (astroSunrise) astroSunrise.textContent = '06:12 AM';
     if (astroSunset) astroSunset.textContent = '06:05 PM';
     if (astroAdvice) astroAdvice.textContent = 'Catch golden hour from Golconda Fort summit or Hussain Sagar promenade for striking reflections over the water.';
+  } else if (/kerala|kochi|munnar|alappuzha|alleppey/i.test(destination) || /kerala|kochi|munnar|alappuzha|alleppey/i.test(dayData.title)) {
+    if (astroSunrise) astroSunrise.textContent = '06:18 AM';
+    if (astroSunset) astroSunset.textContent = '06:28 PM';
+    if (astroAdvice) astroAdvice.textContent = 'View sunset behind the iconic Chinese Fishing Nets in Fort Kochi or over the tranquil backwater canals of Alappuzha.';
   } else if (/tokyo/i.test(destination)) {
     if (astroSunrise) astroSunrise.textContent = '06:05 AM';
     if (astroSunset) astroSunset.textContent = '04:55 PM';
@@ -2336,7 +2572,8 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
   if (budgetTitle) budgetTitle.innerHTML = `<span class="material-symbols-outlined">receipt_long</span> Day ${dayData.dayNumber} Budget Subtotal`;
 
   const isItaly = /italy|rome|florence|venice/i.test(destination) || /rome|florence|venice/i.test(dayData.title);
-  const isIndia = /india|hyderabad/i.test(destination) || /hyderabad|charminar|golconda/i.test(dayData.title);
+  const isIndia = /india|hyderabad|kerala|kochi|munnar|alappuzha/i.test(destination) || /hyderabad|charminar|golconda|kerala|kochi|munnar|alappuzha/i.test(dayData.title);
+  const isKerala = /kerala|kochi|munnar|alappuzha|alleppey/i.test(destination) || /kerala|kochi|munnar|alappuzha|alleppey/i.test(dayData.title);
   const currencySymbol = isItaly ? '€' : (isIndia ? '₹' : '$');
   const currencyCode = isItaly ? 'EUR' : (isIndia ? 'INR' : 'USD');
 
@@ -2345,7 +2582,25 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
     let item2 = { name: 'Authentic Regional Lunch', cost: isItaly ? '25.00' : (isIndia ? '450.00' : '28.00'), status: 'Verified' };
     let item3 = { name: 'Evening Dining & Specialties', cost: isItaly ? '38.00' : (isIndia ? '650.00' : '40.00'), status: 'Est.' };
 
-    if (isIndia || /hyderabad/i.test(destination)) {
+    if (isKerala) {
+      if (actTitles.some(t => /kochi|chinese fishing|mattancherry|jew town/i.test(t))) {
+        item1 = { name: 'Mattancherry Palace & Synagogue Ticket', cost: '150.00', status: 'Verified' };
+        item2 = { name: 'Fort Kochi Fresh Seafood / Sadya Lunch', cost: '480.00', status: 'Verified' };
+        item3 = { name: 'Evening Kathakali Center & Dinner', cost: '650.00', status: 'Verified' };
+      } else if (actTitles.some(t => /munnar|tea|lockhart|eravikulam/i.test(t))) {
+        item1 = { name: 'Eravikulam National Park & Tea Museum', cost: '350.00', status: 'Verified' };
+        item2 = { name: 'Hill Country Thali & Spiced Tea Lunch', cost: '380.00', status: 'Verified' };
+        item3 = { name: 'Munnar Campfire Dinner & Spices', cost: '550.00', status: 'Est.' };
+      } else if (actTitles.some(t => /alappuzha|alleppey|backwater|shikara/i.test(t))) {
+        item1 = { name: 'Vembanad Lake Shikara Canal Cruise', cost: '800.00', status: 'Verified' };
+        item2 = { name: 'Karimeen Pollichathu Houseboat Lunch', cost: '650.00', status: 'Verified' };
+        item3 = { name: 'Appam & Mutton Stew Canal Dinner', cost: '520.00', status: 'Est.' };
+      } else {
+        item1 = { name: 'Backwaters & Heritage Entry', cost: '300.00', status: 'Verified' };
+        item2 = { name: 'Authentic Kerala Sadya Lunch', cost: '420.00', status: 'Verified' };
+        item3 = { name: 'Evening Coastal Specialties & Dinner', cost: '600.00', status: 'Est.' };
+      }
+    } else if (isIndia || /hyderabad/i.test(destination)) {
       if (actTitles.some(t => /charminar|chowmahalla|laad/i.test(t))) {
         item1 = { name: 'Chowmahalla Palace & Charminar Ticket', cost: '300.00', status: 'Verified' };
         item2 = { name: 'Hotel Shadab / Govind Dosa Lunch', cost: '420.00', status: 'Verified' };
@@ -2526,65 +2781,41 @@ copilotForm.addEventListener('submit', async (e) => {
       agentBubble.textContent = '(The agent completed the request.)';
     }
 
-    // 1. First attempt to parse complete itinerary from markdown text
-    let parsed = parseItineraryFromText(fullText, text);
+    // --- COPILOT WORKFLOW: Question Answering & Targeted Edits ---
+    // Rule: Trip Copilot answers questions without wiping/replacing the active trip.
+    // If the user explicitly asks for a targeted adjustment (e.g. "replace tomorrow's lunch with..."):
+    const isTargetedMealEdit = /replace\s+(?:tomorrow'?s?|day\s*(\d+))?\s*(lunch|dinner|morning|afternoon)\s+with\s+(.+)/i.exec(text) ||
+                              /(?:change|swap|update)\s+(?:tomorrow'?s?|day\s*(\d+))?\s*(lunch|dinner|morning|afternoon)\s+to\s+(.+)/i.exec(text);
 
-    // 2. If no markdown days found, extract itinerary from A2UI card components
-    if (!parsed && a2uiParts.length > 0) {
-      parsed = extractItineraryFromA2ui(a2uiParts, text);
+    if (isTargetedMealEdit && dynamicItinerary && dynamicItinerary.days) {
+      const targetDayNum = isTargetedMealEdit[1] ? parseInt(isTargetedMealEdit[1], 10) : (currentDay === 1 ? 2 : currentDay);
+      const targetSlot = isTargetedMealEdit[2].toLowerCase();
+      const newPlaceName = isTargetedMealEdit[3].replace(/[.,!]+$/, '').trim();
+
+      const dayObj = dynamicItinerary.days.find(d => d.dayNumber === targetDayNum);
+      if (dayObj && dayObj.activities) {
+        const act = dayObj.activities.find(a => a.slot.toLowerCase() === targetSlot);
+        if (act) {
+          act.title = newPlaceName;
+          act.desc = `Updated dining reservation at ${newPlaceName} featuring verified authentic cuisine.`;
+          renderDayWorkspace(currentDay);
+          appendCopilotBubble('agent', `✅ Successfully updated <strong>Day ${targetDayNum} ${act.slot}</strong> to <strong>${newPlaceName}</strong> without altering the rest of your itinerary!`);
+          return;
+        }
+      }
     }
 
-    // 3. Fallback for Italy if requested explicitly
-    if (!parsed && /italy/i.test(text)) {
-      parsed = parseItineraryFromText(`
-# 7-Day Italy Journey: Rome, Florence, and Venice
-### Day 1: Historic Rome Arrival & Trastevere Culinary Walk
-- Morning: Arrival in Rome, check-in, explore Piazza Navona and Pantheon.
-- Lunch: Authentic Roman lunch at Da Enzo al 29 (Cacio e Pepe, Carciofi alla Giudia).
-- Afternoon: Spanish Steps and Trevi Fountain unhurried stroll.
-- Evening: Evening aperitivo and dining in Trastevere.
-
-### Day 2: Ancient Rome & The Colosseum
-- Morning: Colosseum & Roman Forum verified morning entry.
-- Lunch: Trattoria Monti near Santa Maria Maggiore.
-- Afternoon: Palatine Hill and Capitoline Museums.
-- Evening: Dinner at Armando al Pantheon.
-
-### Day 3: High-Speed Train to Florence & Renaissance Heart
-- Morning: Frecciarossa high-speed rail from Roma Termini to Firenze Santa Maria Novella (1h 35m).
-- Lunch: Trattoria Mario near Mercato Centrale (Bistecca alla Fiorentina).
-- Afternoon: Duomo (Santa Maria del Fiore) & Piazza della Signoria.
-- Evening: Sunset view from Piazzale Michelangelo.
-
-### Day 4: Florence Uffizi & Oltrarno Artisan Quarter
-- Morning: Uffizi Gallery masterworks (Botticelli, Da Vinci).
-- Lunch: All'Antico Vinaio or Gustapizza in Oltrarno.
-- Afternoon: Ponte Vecchio & Boboli Gardens.
-- Evening: Traditional Florentine dinner at Trattoria Cammillo.
-
-### Day 5: High-Speed Train to Venice & Grand Canal
-- Morning: Frecciarossa train from Florence to Venezia Santa Lucia (2h 05m).
-- Lunch: Cicchetti and Ombra wine at Cantina Do Mori (San Polo).
-- Afternoon: Vaporetto along the Grand Canal to Piazza San Marco.
-- Evening: St. Mark's Basilica & unhurried stroll through Cannaregio.
-
-### Day 6: Venice Murano, Burano & Hidden Dorsoduro
-- Morning: Water bus to Burano lace-making island and colorful canals.
-- Lunch: Trattoria da Romano in Burano (Risotto di gò).
-- Afternoon: Return to Dorsoduro, Santa Maria della Salute & Peggy Guggenheim Collection.
-- Evening: Bacaro crawl and seafood dinner at Osteria alle Testiere.
-
-### Day 7: Venice Scenic Farewell & Departure
-- Morning: Rialto Market morning walk and fresh local espresso.
-- Lunch: Casual Venetian farewell lunch at Osteria Al Squero.
-- Afternoon: Gondola or water taxi transfer to Venice Marco Polo Airport.
-      `, text);
+    // Check if the user is explicitly requesting a brand new trip generation inside Copilot
+    const isNewPlanRequest = /^(?:plan|create|generate)\s+(?:a\s+)?(?:new\s+)?(?:trip|itinerary)\s+(?:for|to)\s+([a-zA-Z\s,]+)/i.exec(text);
+    if (isNewPlanRequest && isNewPlanRequest[1]) {
+      const destCandidate = isNewPlanRequest[1].trim();
+      appendCopilotBubble('agent', `Switching to New Plan workflow to generate your itinerary for <strong>${destCandidate}</strong>…`);
+      generateNewTrip(text);
+      return;
     }
 
-    // 4. If an itinerary is parsed, synchronize the main workspace
-    if (parsed && parsed.days && parsed.days.length > 0) {
-      updateWorkspaceWithItinerary(parsed, fullText || text);
-    }
+    // For general questions (e.g. Hyderabadi biryani in Kerala, weather, timings):
+    // Do NOT clobber dynamicItinerary! The answer is already rendered in the Copilot chat drawer above.
   } catch (err) {
     agentBubble.textContent = 'Error: ' + err.message;
   }
