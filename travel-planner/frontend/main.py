@@ -1,3 +1,4 @@
+import sys
 """Minimal FastAPI proxy for a deployed A2A agent (Agent Runtime, agents-cli 1.1.0+).
 
 The browser talks ONLY to this proxy (same origin, no CORS, no GCP creds in the
@@ -238,6 +239,26 @@ async def delete_passport(req: Request):
         destination=data.get("destination", "Kyoto"),
     )
     return JSONResponse(res)
+
+try:
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    from app.multi_agent.orchestrator import MultiAgentTravelOrchestrator
+    _orchestrator = MultiAgentTravelOrchestrator()
+except Exception as e:
+    print(f"Error loading orchestrator: {e}")
+    _orchestrator = None
+
+@app.post("/api/trip/canonical")
+async def get_canonical_trip(req: Request):
+    data = await req.json()
+    prompt = data.get("prompt", "I'm visiting Italy for 7 days.")
+    if _orchestrator:
+        trip = _orchestrator.build_canonical_trip(prompt)
+        return JSONResponse(trip.model_dump())
+    return JSONResponse({"error": "Multi-agent orchestrator unavailable"}, status_code=500)
+
 
 @app.post("/chat")
 async def chat(req: Request):
