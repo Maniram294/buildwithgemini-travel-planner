@@ -1,155 +1,112 @@
-# ✈️ Travel Planner Agent
+# ✈️ Travel Planner — Evidence-Backed Travel Intelligence Agent
 
-> An agent-first travel assistant that helps travelers discover destinations, explore curated catalogs, generate scenic travel media, and plan customized itineraries with persistent memory and rich A2UI cards.
+> An AI-powered Evidence-Backed Travel Intelligence Agent that constructs realistic, verified travel itineraries grounded in live Google Places API data, actionable Google Maps and directions URLs, authentic regional cuisine, astronomical timing, seasonal events, deterministic budget calculations, and offline travel packs.
 
 ![Travel Planner Demo](demo.gif)
 
 ---
 
-## 🌟 What This Agent Does
+## 🌟 Core Product Purpose
 
-The Travel Planner agent is built with Google's **Agent Development Kit (ADK)** and deployed to **Google Cloud Agent Platform (Agent Runtime)**. It operates as an **A2A (Agent-to-Agent)** compliant conversational agent with native tool execution, persistent cross-session memory, and dynamic UI rendering:
+Generic travel assistants hallucinate non-existent attractions, invent addresses and operating hours, and fail basic travel math. **Travel Planner** operates on an evidence-first philosophy:
 
-- **Curated Destination Catalog**: Searches and inspects curated travel destinations stored in Firestore, including top attractions, best travel seasons, highlights, and local tips.
-- **Persistent Personal Memory**: Automatically remembers traveler preferences, home airport, travel style (adventure, luxury, budget), past trips, and **crucially tracks food allergies and dietary restrictions** across conversations so future recommendations never conflict with safety guidelines.
-- **Live Weather & Packing Insights**: Queries real-time weather forecasts, current temperatures, wind speeds, and humidity via the Open-Meteo API to provide dynamic packing recommendations.
-- **Live Currency Conversion**: Pulls live international exchange rates to convert travel costs, lodging expenses, and trip budgets between international currencies.
-- **Geocoding & Places Discovery**: Converts landmark names to geographic coordinates and queries nearby points of interest, attractions, museums, and hotels via the Google Maps Places API.
-- **Scenic Postcard Generation**: Generates high-resolution travel photos and postcards on-demand using Google's `gemini-3.1-flash-lite-image` model, saving them as local artifacts and uploading them directly to Google Cloud Storage.
-- **Cinematic Video Previews**: Generates short travel preview videos using Google's Omni model (`gemini-omni-flash-preview`), saves them as artifacts, and uploads them to Google Cloud Storage.
-- **Safe Code Execution Sandbox**: Executes custom Python calculations within Vertex AI's Agent Engine Sandbox environment for math, travel budget breakdowns, and data analysis.
-- **Agent-First UI (A2UI)**: Returns structured UI cards and layout columns natively rendered by the frontend rather than markdown text alone.
+> **"Discover a destination through verified places, working navigation links, authentic regional cuisine, date-aware recommendations, practical routing, deterministic budget calculations, seasonal events, persistent traveler preferences, and offline access."**
+
+### Core Capabilities:
+1. **Intelligent Trip-Duration Handling (`plan_trip_duration`)**:
+   - **Case A (No dates/duration)**: Generates a comprehensive **7-day itinerary** by default and explicitly states this assumption.
+   - **Case B (Exact duration)**: Faithfully creates the exact requested day count (e.g. 3-day, 5-day, 10-day).
+   - **Case C (Calendar dates)**: Calculates inclusive calendar days (e.g., Nov 2 to Nov 8 = 7 calendar days) and aligns seasonal operating schedules.
+   - **Case D (Conflict detection)**: Flags conflicts between stated days and date spans (e.g. *"3-day trip from Nov 2 to Nov 10"*) and prompts concisely for clarification.
+2. **Verified Place Links & Turn-by-Turn Directions (`link_utils.py`)**:
+   - Direct Google Maps place links for all recommended stops.
+   - Turn-by-turn directions URLs between consecutive stops (e.g. transit or walking from Day 1 Morning stop to Lunch stop).
+   - Sanitized official website links (HTTP/HTTPS only).
+3. **Authentic Local Food Discovery (`discover_authentic_cuisine`)**:
+   - Grounded regional dishes, cultural context, and traditional market districts (e.g., Kyo-ryori, Shojin Ryori, Nishiki Market, Tsukiji).
+   - Paired with live Google Places API (New) verification for real business existence, addresses, actual ratings, review counts, and hours.
+   - Strict adherence to food allergies and dietary restrictions.
+4. **Best-Time-to-Visit Intelligence (`get_best_visit_time`)**:
+   - Astronomical sunrise and sunset calculations via Open-Meteo for golden-hour views, temple morning visits, and trail daylight safety.
+5. **Deterministic Source-Backed Budget Calculator (`calculate_budget_plan`)**:
+   - Python-powered financial calculation layer independent of model math.
+   - Category breakdowns (accommodation, food, transit, activities, contingency), daily subtotals, per-person vs. group costs, and explicit distinction between verified ticket prices and estimated expenses.
+6. **Seasonal Events Discovery (`get_seasonal_events`)**:
+   - Date-aware matching of municipal and cultural festivals (e.g., Kyoto Jidai Matsuri in late October, Gion Matsuri in July) verified against cultural calendars.
+7. **User-Approved Food Passport (`manage_food_passport`)**:
+   - Personal passport allowing travelers to save dishes to try, log dishes tried with 1-5 ratings and notes, stored durably in Cloud Firestore.
+8. **Offline Trip Pack (`compile_offline_pack` & Frontend Export)**:
+   - Self-contained travel document generation with complete stops, addresses, and saved links.
+   - One-click "Save Trip Offline" export in the chat frontend.
 
 ---
 
-## 🛠️ Google Cloud Services & Integrations
-
-The code in this repository connects directly to the following Google Cloud and ADK services:
+## 🛠️ Google Cloud Services & Architecture
 
 | Component / Service | Implementation in Code | Purpose |
 |---|---|---|
 | **Agent Platform / Agent Runtime** | `agents-cli-manifest.yaml`, `Dockerfile` | Hosts the ADK agent runtime over the A2A protocol (`gemini-3.8-flash`). |
-| **Vertex AI Memory Bank** | `PreloadMemoryTool`, `generate_memories_callback` in `app/agent.py` | Cross-session persistent memory for traveler preferences, allergies, and history. |
-| **Cloud Firestore** | `list_destinations`, `get_destination_details`, `save_destination` in `app/agent.py` | Real-time NoSQL database holding the curated destination catalog and reviews. |
-| **Cloud Storage** | `generate_destination_image`, `generate_destination_video` in `app/agent.py` | Public media bucket storing generated postcards and cinematic preview videos. |
-| **Vertex AI Image Generation** | `client.models.generate_content(model="gemini-3.1-flash-lite-image")` in `app/agent.py` | On-demand scenic postcard generation. |
-| **Vertex AI Omni Video** | `client.interactions.create(model="gemini-omni-flash-preview")` in `app/agent.py` | Short cinematic travel preview video generation. |
-| **Vertex AI Agent Engine Sandbox** | `AgentEngineSandboxCodeExecutor` in `app/agent.py` | Isolated secure code execution environment for budget formulas and data analysis. |
-| **A2UI Protocol** | `a2ui_schema_manager`, `a2ui_callback` in `app/agent.py` | Structured JSON component system rendering visual cards in the chat UI. |
-| **FastAPI Proxy & Web UI** | `frontend/main.py`, `frontend/static/index.html` | Client-facing web interface communicating with the deployed agent via A2A. |
+| **Vertex AI Memory Bank** | `PreloadMemoryTool`, `generate_memories_callback` in `app/agent.py` | Cross-session persistent memory for traveler preferences and strict food allergies. |
+| **Cloud Firestore** | `list_destinations`, `save_destination`, `FoodPassportManager` | Curated destination catalog and traveler food passport storage. |
+| **Google Maps Places API (New)** | `discover_authentic_cuisine`, `search_destination_experiences`, `find_nearby_places` | Live business verification, ratings, review counts, operating hours, and Maps URLs. |
+| **Google Maps Geocoding API** | `geocode_address` in `app/agent.py` | Geocoding landmarks to latitude/longitude coordinates. |
+| **Open-Meteo APIs** | `fetch_live_weather`, `evaluate_best_visit_time` | Real-time weather conditions, forecasts, and astronomical sunrise/sunset calculations. |
+| **Cloud Storage** | `generate_destination_image` in `app/agent.py` | Media bucket storing generated destination postcards. |
+| **Vertex AI Image Generation** | `client.models.generate_content(model="gemini-3.1-flash-lite-image")` | On-demand scenic destination postcard generation. |
+| **Vertex AI Code Execution Sandbox** | `AgentEngineSandboxCodeExecutor` in `app/agent.py` | Secure isolated environment for mathematical calculations. |
+| **A2UI Protocol & Web Frontend** | `a2ui_schema_manager`, `frontend/static/index.html` | Rich interactive card UI and web client with offline pack export. |
 
 ---
 
 ## 📋 Implemented Tools (`app/agent.py`)
 
-1. `PreloadMemoryTool`: Loads long-term traveler profile and memory bank facts into the agent context at the start of each session.
-2. `list_destinations(travel_style)`: Queries the Firestore `destinations` collection filtered by travel style.
-3. `get_destination_details(destination_id)`: Fetches complete catalog details for a specific destination from Firestore.
-4. `save_destination(destination_id, name, country, description, ...)`: Saves or updates a destination document in Firestore.
-5. `fetch_live_weather(location)`: Fetches current temperature, humidity, wind speed, and weather condition for any location.
-6. `convert_currency(amount, from_currency, to_currency)`: Converts trip budgets and activity costs with live exchange rates.
-7. `geocode_address(address)`: Resolves landmark or destination names to latitude/longitude coordinates via Google Maps Geocoding.
-8. `find_nearby_places(latitude, longitude, place_type, radius_meters)`: Discovers nearby attractions, restaurants, museums, or lodging via Google Maps Places API.
-9. `generate_destination_image(prompt, tool_context, destination_name)`: Generates travel postcard images using `gemini-3.1-flash-lite-image`, registers them in the Playground's Artifacts panel, and publishes them to Google Cloud Storage.
-10. `generate_destination_video(prompt, tool_context, destination_name)`: Generates short cinematic travel preview videos using `gemini-omni-flash-preview`, saves them as artifacts, and uploads them to Google Cloud Storage.
+1. `plan_trip_duration(user_request)`: Deterministic duration and date parsing (Cases A, B, C, D).
+2. `discover_authentic_cuisine(destination, specialty_or_dish, neighborhood, origin_location, max_results)`: Verified regional cuisine and live Google Places discovery with directions.
+3. `search_destination_experiences(destination, experience_category, neighborhood, origin_location, max_results)`: Cultural landmarks, walkable districts, and museums via Places API (New).
+4. `get_best_visit_time(attraction_name, attraction_type, latitude, longitude, target_date)`: Astronomical timing, daylight safety, and golden-hour recommendations.
+5. `calculate_budget_plan(expenses_json, group_size, num_days, target_currency)`: Deterministic budget calculator with verified vs. estimated tracking.
+6. `get_seasonal_events(destination, start_date, end_date)`: Date-filtered verified cultural events.
+7. `manage_food_passport(action, user_id, dish_name, destination, status, rating, notes)`: User food passport (add, list, remove dishes).
+8. `compile_offline_pack(trip_name, destination, duration_days, itinerary_json, start_date, end_date)`: Self-contained offline pack compiler.
+9. `PreloadMemoryTool`: Long-term traveler profile, preferences, and dietary restrictions.
+10. `list_destinations(travel_style)`: Firestore destination catalog search.
+11. `get_destination_details(destination_id)`: Firestore destination details lookup.
+12. `save_destination(...)`: Firestore destination saving.
+13. `fetch_live_weather(location)`: Real-time weather via Open-Meteo.
+14. `convert_currency(amount, from_currency, to_currency)`: Live international currency conversion.
+15. `geocode_address(address)`: Google Maps geocoding to coordinates.
+16. `find_nearby_places(latitude, longitude, place_type, radius_meters)`: Nearby places search.
+17. `generate_destination_image(prompt, tool_context, destination_name)`: Scenic postcard generation via `gemini-3.1-flash-lite-image`.
 
-*(Note: Grounded RAG corpus integration is planned, but not yet implemented; the agent currently utilizes Firestore and real-time APIs for factual grounding).*
+*(Note: Video generation is completely excluded from product scope. Grounded RAG corpus integration is marked as planned).*
 
 ---
 
-## 💻 Local Development & Setup
+## 💻 Local Development & Testing
 
-### Prerequisites
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) package manager
-- [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) (`gcloud`) authenticated with a project containing Vertex AI, Firestore, and Cloud Storage permissions.
+### 1. Run Unit Tests
 
-### 1. Install Dependencies
-
-Clone the repository and install dependencies using `uv`:
+Execute the complete deterministic test suite (26 unit tests):
 
 ```bash
 cd travel-planner
-uv sync
+.venv/bin/pytest tests/unit/ -v
 ```
 
-### 2. Configure Environment
+### 2. Run the Agent Playground
 
-Copy the example environment file and configure your API keys and project settings:
+Start the local ADK Web development server with hot reloading and Memory Bank integration:
 
 ```bash
-cp .env.example .env
+cd travel-planner
+.venv/bin/adk web . --port 8080 --reload_agents --memory_service_uri=agentengine://460472171177705472
 ```
 
-Ensure the following variables are set in `.env`:
-```bash
-GOOGLE_GENAI_USE_VERTEXAI=true
-GOOGLE_CLOUD_PROJECT=your-gcp-project-id
-GOOGLE_CLOUD_LOCATION=us-east1
-MEMORY_BANK_LOCATION=us-east1
-GOOGLE_MAPS_API_KEY=your-google-maps-api-key
-```
-
-### 3. Seed the Destination Catalog
-
-Populate the Firestore database with curated travel destinations:
+### 3. Run the Web Frontend
 
 ```bash
-uv run python seed_firestore.py
-```
-
-### 4. Run the Agent Playground
-
-Launch the interactive ADK Web interface with hot reloading and Memory Bank support:
-
-```bash
-uv run adk web . --port 8080 --reload_agents --memory_service_uri=agentengine://<YOUR_MEMORY_BANK_ID>
-```
-
-Open your browser to the local playground address to test tools, inspect prompts, and view artifacts.
-
----
-
-## 🌐 Running the Web Frontend Locally
-
-The repository includes a standalone FastAPI proxy and chat interface in `frontend/` that communicates with the deployed Agent Runtime via the A2A protocol:
-
-```bash
-cd frontend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# Set your deployed Agent Engine resource name
-export AGENT_ENGINE_RESOURCE_NAME="projects/<PROJECT_NUMBER>/locations/us-east1/reasoningEngines/<RESOURCE_ID>"
+cd travel-planner/frontend
+export AGENT_ENGINE_RESOURCE_NAME="projects/513515792631/locations/us-east1/reasoningEngines/2175217729299021824"
 export AGENT_DIRECTORY="app"
-
-python main.py
-```
-
-Open your browser to the local port (default: 8080) to interact with the branded Travel Planner chat UI, quick prompt pills, and real-time A2UI card renderer.
-
----
-
-## 🚢 Deployment
-
-### Deploy Agent to Agent Runtime
-
-Deploy the agent to Google Cloud Agent Platform using `agents-cli`:
-
-```bash
-agents-cli deploy --project <your-gcp-project-id> --update-env-vars GOOGLE_MAPS_API_KEY=<your-api-key>
-```
-
-### Deploy Frontend to Cloud Run
-
-Deploy the web frontend container to Google Cloud Run:
-
-```bash
-cd frontend
-gcloud run deploy travel-planner-frontend \
-  --source . \
-  --region us-east1 \
-  --set-env-vars AGENT_ENGINE_RESOURCE_NAME="projects/<PROJECT_NUMBER>/locations/us-east1/reasoningEngines/<RESOURCE_ID>",AGENT_DIRECTORY="app" \
-  --allow-unauthenticated
+.venv/bin/python main.py
 ```

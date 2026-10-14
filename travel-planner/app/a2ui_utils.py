@@ -217,43 +217,96 @@ def _surface_is_renderable(messages: list[dict]) -> bool:
     return True
 
 
+def _extract_a2ui_messages_and_prose(text: str) -> tuple[list[dict], str]:
+    """Pull A2UI messages out of raw text, returning (messages, remaining_prose)."""
+    decoder = json.JSONDecoder()
+    n = len(text)
+    idx = 0
+    extracted_ranges = []
+    messages: list[dict] = []
+
+    while idx < n:
+        while idx < n and text[idx] not in "{[":
+            idx += 1
+        if idx >= n:
+            break
+        try:
+            val, end = decoder.raw_decode(text, idx)
+            as_list = val if isinstance(val, list) else [val]
+            msgs_in_val = []
+            for item in as_list:
+                if isinstance(item, dict):
+                    inner = item.get("data") if isinstance(item.get("data"), dict) else None
+                    if inner and any(k in inner for k in _A2UI_KEYS):
+                        msgs_in_val.append(inner)
+                    elif any(k in item for k in _A2UI_KEYS):
+                        msgs_in_val.append(item)
+            if msgs_in_val:
+                extracted_ranges.append((idx, end))
+                messages.extend(msgs_in_val)
+            idx = end
+        except Exception:
+            idx += 1
+
+    # Remove extracted JSON spans from text to keep remaining prose
+    prose = text
+    for start, end in reversed(extracted_ranges):
+        prose = prose[:start] + prose[end:]
+
+    # Clean leftover empty markdown fences and wrapper tags
+    prose = re.sub(r"```(?:json)?\s*```", "", prose)
+    prose = _TAG_RE.sub("", prose)
+    prose = re.sub(r"\n{3,}", "\n\n", prose).strip()
+    return messages, prose
+
+
 def a2ui_callback(
     callback_context: CallbackContext,
     llm_response: LlmResponse,
 ) -> LlmResponse | None:
-    """Convert A2UI JSON in text output to rendered components (or a clean fallback)."""
+    """Convert A2UI JSON in text output to rendered components, preserving accompanying itinerary prose."""
     if not llm_response.content or not llm_response.content.parts:
         return None
+
+    new_parts: list[types.Part] = []
+    has_a2ui = False
 
     for part in llm_response.content.parts:
         text = (part.text or "").strip()
         if not text:
+            new_parts.append(part)
             continue
-        # Cheap gate: only touch parts that look like A2UI, leave prose alone.
+        # Only process parts that look like A2UI
         if not any(k in text for k in _A2UI_KEYS):
+            new_parts.append(part)
             continue
 
-        messages = _extract_a2ui_messages(text)
+        messages, remaining_prose = _extract_a2ui_messages_and_prose(text)
         if not messages:
+            new_parts.append(part)
             continue
 
-        # Turn un-fetchable <Image> URLs into a text note (no broken-image icons).
         _sanitize_image_components(messages)
 
         if not _surface_is_renderable(messages):
-            # We recognized A2UI but couldn't recover a renderable surface — the
-            # model emitted invalid JSON, a missing surface body, or an undefined
-            # root/child reference. Return clean text instead of a blank card.
-            return LlmResponse(
-                content=types.Content(
-                    role="model", parts=[types.Part(text=_FALLBACK_TEXT)]
-                )
-            )
+            # If surface couldn't be rendered, retain fallback or remaining prose
+            fallback_text = remaining_prose if remaining_prose else _FALLBACK_TEXT
+            new_parts.append(types.Part(text=fallback_text))
+            continue
 
-        new_parts = [_wrap_a2ui_part(m) for m in messages]
+        has_a2ui = True
+        # Wrap A2UI data parts
+        for m in messages:
+            new_parts.append(_wrap_a2ui_part(m))
+        # Retain remaining prose (e.g. 7-day detailed itinerary)
+        if remaining_prose:
+            new_parts.append(types.Part(text=remaining_prose))
+
+    if has_a2ui:
         return LlmResponse(
             content=types.Content(role="model", parts=new_parts),
             custom_metadata={"a2a:response": "true"},
         )
 
     return None
+

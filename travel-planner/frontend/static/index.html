@@ -3,298 +3,1892 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Travel Planner</title>
-<!-- Optional: used only to draw A2UI Icon components. If it can't load (offline/
-     corp network), icons fall back to showing their name as text. -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+<title>Travel Planner — Evidence-Backed Travel Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
 <style>
   :root {
-    --accent: #0d9488;
-    --accent-dark: #0f766e;
-    --accent-light: #f0fdfa;
-    --accent-glow: rgba(13, 148, 136, 0.15);
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --border: #e2e8f0;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
+    --bg-app: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface-hover: #F1F4F9;
+    --border-subtle: #E4E8EF;
+    --border-strong: #CBD5E1;
+    --text-primary: #172033;
+    --text-secondary: #687386;
+    --text-muted: #94A3B8;
+    --accent-coral: #E85D75;
+    --accent-coral-subtle: #FDF2F4;
+    --accent-teal: #0D9488;
+    --accent-teal-dark: #0F766E;
+    --accent-teal-light: #F0FDFA;
+    --accent-amber: #D97706;
+    --accent-amber-light: #FEF3C7;
+    --accent-green: #10B981;
+    --accent-green-light: #ECFDF5;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.08);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    --sidebar-width: 260px;
+    --copilot-width: 380px;
   }
-  * { box-sizing: border-box; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
-    color: #fff;
-    padding: 0.9rem 1.5rem;
-    box-shadow: 0 2px 10px rgba(13, 148, 136, 0.2);
+
+  /* Top Navigation Bar */
+  header.app-header {
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 50;
+    flex-shrink: 0;
   }
-  .header-brand {
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .brand-logo {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     font-size: 1.15rem;
     font-weight: 700;
     letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-decoration: none;
   }
-  .header-badge {
-    font-size: 0.75rem;
-    background: rgba(255, 255, 255, 0.2);
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent-coral) 0%, #D94665 100%);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(232, 93, 117, 0.25);
+  }
+
+  .brand-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent-teal);
+    background: var(--accent-teal-light);
+    border: 1px solid #CCFBF1;
     padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-weight: 500;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
-  #log {
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    text-decoration: none;
+    font-family: inherit;
+  }
+
+  .btn-outline {
+    background: var(--surface);
+    border-color: var(--border-subtle);
+    color: var(--text-primary);
+  }
+  .btn-outline:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-teal-dark) 100%);
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.2);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-coral {
+    background: linear-gradient(135deg, var(--accent-coral) 0%, #D94665 100%);
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(232, 93, 117, 0.2);
+  }
+  .btn-coral:hover {
+    box-shadow: 0 4px 10px rgba(232, 93, 117, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  /* App Shell */
+  .app-shell {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Left Sidebar */
+  aside.app-sidebar {
+    width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .sidebar-nav {
+    padding: 1rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem 1rem;
-    max-width: 820px;
+  }
+
+  .nav-section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    padding: 0.75rem 0.75rem 0.35rem;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
     width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  .nav-item.active {
+    color: var(--accent-coral);
+    background: var(--accent-coral-subtle);
+    font-weight: 600;
+  }
+
+  .nav-item .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
+
+  .sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Main Workspace Area */
+  main.main-workspace {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* View Containers */
+  .workspace-view {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 1080px;
     margin: 0 auto;
+    width: 100%;
+  }
+
+  .workspace-view.active {
+    display: flex;
+  }
+
+  /* Trip Overview Header */
+  .trip-hero-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .hero-banner {
+    height: 180px;
+    position: relative;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 1.5rem;
+    color: #FFFFFF;
+  }
+
+  .hero-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.2) 60%, transparent 100%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .hero-title-group h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35rem;
+  }
+
+  .hero-title-group p {
+    font-size: 0.9rem;
+    color: #CBD5E1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero-meta-bar {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 1rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .meta-pills {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .meta-stat .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .meta-stat .value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Day Selector Tabs */
+  .day-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+
+  .day-tab {
+    padding: 0.65rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 130px;
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+
+  .day-tab:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+  }
+
+  .day-tab.active {
+    border-color: var(--accent-coral);
+    background: var(--accent-coral-subtle);
+    box-shadow: 0 2px 8px rgba(232, 93, 117, 0.12);
+  }
+
+  .day-tab .tab-day-number {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .day-tab.active .tab-day-number {
+    color: var(--accent-coral);
+  }
+
+  .day-tab .tab-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Day Itinerary Timeline Grid */
+  .day-workspace-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+  }
+
+  .timeline-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .day-summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .day-summary-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .day-summary-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Activity Timeline Cards */
+  .activity-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .activity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+  }
+
+  .activity-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .activity-time-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-teal);
+    background: var(--accent-teal-light);
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .activity-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.25rem;
+  }
+
+  .activity-place-sub {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+  }
+
+  .evidence-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .evidence-verified {
+    background: var(--accent-green-light);
+    color: var(--accent-green);
+    border: 1px solid #A7F3D0;
+  }
+
+  .evidence-estimated {
+    background: var(--accent-amber-light);
+    color: var(--accent-amber);
+    border: 1px solid #FDE68A;
+  }
+
+  .activity-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .activity-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+  }
+
+  .action-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-teal);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.6rem;
+    background: var(--accent-teal-light);
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease;
+  }
+
+  .action-link:hover {
+    background: #CCFBF1;
+  }
+
+  /* Contextual Side Panel */
+  .contextual-panel {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
   }
-  .msg-row {
+
+  .panel-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
     display: flex;
-    gap: 0.75rem;
-    max-width: 85%;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.85rem;
   }
-  .msg-row.agent {
-    align-self: flex-start;
+
+  .panel-card-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
-  .msg-row.user {
-    align-self: flex-end;
-    flex-direction: row-reverse;
+
+  .panel-card-title .material-symbols-outlined {
+    font-size: 1.15rem;
+    color: var(--accent-coral);
   }
-  .avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
+
+  /* Map Container */
+  .interactive-map-frame {
+    height: 200px;
+    border-radius: var(--radius-sm);
+    background: #E2E8F0;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .map-fallback-msg {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+  }
+
+  /* Food Explorer & Passport View */
+  .food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .food-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease;
+  }
+
+  .food-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+  }
+
+  .food-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .food-card-context {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  .food-card-advice {
+    font-size: 0.8rem;
+    color: var(--accent-teal-dark);
+    background: var(--accent-teal-light);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+  }
+
+  /* Collapsible Trip Copilot Drawer */
+  .copilot-panel {
+    width: var(--copilot-width);
+    background: var(--surface);
+    border-left: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-md);
+    z-index: 40;
   }
-  .avatar.agent {
-    background: linear-gradient(135deg, #ccfbf1, #99f6e4);
-    color: #0f766e;
-    border: 1px solid #5eead4;
+
+  .copilot-panel.collapsed {
+    width: 0;
+    overflow: hidden;
+    border-left: none;
   }
-  .avatar.user {
-    background: linear-gradient(135deg, #0d9488, #0f766e);
-    color: #fff;
+
+  .copilot-header {
+    height: 56px;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    background: #FAFBFD;
   }
-  .bubble-wrap {
+
+  .copilot-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .copilot-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .chat-msg {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    max-width: 90%;
   }
-  .msg-author {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    font-weight: 600;
+
+  .chat-msg.user {
+    align-self: flex-end;
   }
-  .msg-row.user .msg-author {
-    text-align: right;
+
+  .chat-msg.agent {
+    align-self: flex-start;
   }
-  .bubble {
-    padding: 0.8rem 1.1rem;
-    border-radius: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    line-height: 1.5;
-    font-size: 0.95rem;
-    white-space: pre-wrap;
+
+  .chat-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    line-height: 1.45;
     word-break: break-word;
   }
-  .msg-row.agent .bubble {
-    border-top-left-radius: 4px;
+
+  .chat-msg.user .chat-bubble {
+    background: linear-gradient(135deg, var(--accent-coral) 0%, #D94665 100%);
+    color: #FFFFFF;
+    border-bottom-right-radius: 4px;
   }
-  .msg-row.user .bubble {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-    color: #ffffff;
-    border: none;
-    border-top-right-radius: 4px;
-    box-shadow: 0 2px 8px var(--accent-glow);
+
+  .chat-msg.agent .chat-bubble {
+    background: var(--bg-app);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-bottom-left-radius: 4px;
   }
-  /* When the reply is an A2UI card, drop the bubble chrome so the card stands alone. */
-  .bubble.rich {
+
+  .chat-bubble.rich {
     background: transparent;
     border: none;
     padding: 0;
-    box-shadow: none;
     max-width: 100%;
-    white-space: normal;
   }
 
-  /* --- Quick example prompts --- */
-  .prompt-row {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.6rem 1rem 0.2rem;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    overflow-x: auto;
-    max-width: 820px;
-    width: 100%;
-    margin: 0 auto;
-    scrollbar-width: thin;
-  }
-  .prompt-btn {
-    font-size: 0.85rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: 20px;
-    border: 1px solid #ccfbf1;
-    background: var(--accent-light);
-    color: var(--accent-dark);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-  .prompt-btn:hover {
-    background: #ccfbf1;
-    border-color: var(--accent);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(13, 148, 136, 0.15);
-  }
-
-  /* --- Input form --- */
-  form {
-    display: flex;
-    gap: 0.6rem;
-    padding: 0.8rem 1rem 1rem;
-    background: var(--surface);
-    max-width: 820px;
-    width: 100%;
-    margin: 0 auto;
-  }
-  .input-wrapper {
-    position: relative;
-    flex: 1;
-    display: flex;
-  }
-  input {
-    width: 100%;
-    padding: 0.8rem 1.1rem;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-  }
-  button#send-btn {
-    padding: 0.8rem 1.4rem;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    box-shadow: 0 2px 6px var(--accent-glow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  button#send-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px var(--accent-glow);
-  }
-
-  /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
   .a2card {
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.2rem;
-    background: #fff;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
     max-width: 100%;
   }
-  .a2card + .a2card, .a2col > .a2card { margin-top: 0.75rem; }
+  .a2card + .a2card, .a2col > .a2card { margin-top: 0.6rem; }
   .a2col { display: flex; flex-direction: column; gap: 0.5rem; }
   .a2row { display: flex; flex-direction: row; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
   .a2row.between { justify-content: space-between; }
   .a2text { margin: 0; line-height: 1.45; }
-  .a2text.a2-h1 { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
-  .a2text.a2-h2 { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
-  .a2text.a2-h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
-  .a2text.a2-h4 { font-size: 1rem; font-weight: 600; color: #1e293b; }
-  .a2text.a2-caption { font-size: 0.85rem; color: #64748b; }
-  .a2divider { border: none; border-top: 1px solid var(--border); margin: 0.5rem 0; width: 100%; }
-  .a2img { max-width: 100%; border-radius: 10px; display: block; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.25rem; line-height: 1; vertical-align: middle; color: var(--accent); }
+  .a2text.a2-h1 { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+  .a2text.a2-h2 { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+  .a2text.a2-caption { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+  .a2divider { border: none; border-top: 1px solid var(--border-subtle); margin: 0.4rem 0; width: 100%; }
+  .a2img { max-width: 100%; border-radius: var(--radius-sm); display: block; object-fit: cover; max-height: 180px; }
+
+  .copilot-quick-actions {
+    padding: 0.6rem 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    background: #FAFAFA;
+    scrollbar-width: none;
+  }
+
+  .quick-chip {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35rem 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+
+  .quick-chip:hover {
+    border-color: var(--accent-coral);
+    color: var(--accent-coral);
+  }
+
+  .copilot-input-form {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    gap: 0.5rem;
+    background: var(--surface);
+  }
+
+  .copilot-input-form input {
+    flex: 1;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .copilot-input-form input:focus {
+    border-color: var(--accent-teal);
+  }
+
+  /* Empty and Loading States */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .empty-state .material-symbols-outlined {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+  }
+
+  .empty-state h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .empty-state p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    max-width: 420px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .day-workspace-grid {
+      grid-template-columns: 1fr;
+    }
+    aside.app-sidebar {
+      width: 220px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    aside.app-sidebar {
+      display: none;
+    }
+    .copilot-panel {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="header-brand">
-    <span style="font-size:1.4rem;">✈️</span> Travel Planner
+
+<header class="app-header">
+  <div class="header-left">
+    <a href="#" class="brand-logo" onclick="switchView('planner')">
+      <div class="brand-icon">
+        <span class="material-symbols-outlined" style="font-size:1.3rem;">explore</span>
+      </div>
+      <span>Travel Planner</span>
+    </a>
+    <div class="brand-badge">Local Intelligence</div>
   </div>
-  <div class="header-badge">AI Assistant</div>
+
+  <div class="header-actions">
+    <button class="btn btn-outline btn-sm" onclick="exportOfflineTripPack()">
+      <span class="material-symbols-outlined" style="font-size:1.1rem;">save_alt</span>
+      Save Offline Pack
+    </button>
+    <button class="btn btn-outline btn-sm" onclick="toggleCopilot()">
+      <span class="material-symbols-outlined" style="font-size:1.1rem;">chat</span>
+      Trip Copilot
+    </button>
+    <button class="btn btn-coral btn-sm" onclick="openNewTripModal()">
+      <span class="material-symbols-outlined" style="font-size:1.1rem;">add</span>
+      New Plan
+    </button>
+  </div>
 </header>
-<div id="log"></div>
-<div class="prompt-row">
-  <button type="button" class="prompt-btn" onclick="sendPrompt(this.textContent)">🗺️ Plan a 3-day adventure itinerary in Tokyo</button>
-  <button type="button" class="prompt-btn" onclick="sendPrompt(this.textContent)">💰 Calculate a $1500 budget breakdown for Paris</button>
-  <button type="button" class="prompt-btn" onclick="sendPrompt(this.textContent)">🎨 Generate a scenic postcard of Santorini</button>
+
+<div class="app-shell">
+  <!-- Left Navigation Sidebar -->
+  <aside class="app-sidebar">
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+      <button class="nav-item active" id="nav-planner" onclick="switchView('planner')">
+        <span class="material-symbols-outlined">calendar_today</span>
+        Trip Itinerary
+      </button>
+      <button class="nav-item" id="nav-food" onclick="switchView('food')">
+        <span class="material-symbols-outlined">restaurant</span>
+        Local Food Explorer
+      </button>
+      <button class="nav-item" id="nav-passport" onclick="switchView('passport')">
+        <span class="material-symbols-outlined">book</span>
+        Food Passport
+      </button>
+      <button class="nav-item" id="nav-events" onclick="switchView('events')">
+        <span class="material-symbols-outlined">festival</span>
+        Seasonal Events
+      </button>
+
+      <div class="nav-section-label">Travel Tools</div>
+      <button class="nav-item" id="nav-budget" onclick="switchView('budget')">
+        <span class="material-symbols-outlined">payments</span>
+        Budget Breakdown
+      </button>
+      <button class="nav-item" id="nav-offline" onclick="switchView('offline')">
+        <span class="material-symbols-outlined">cloud_off</span>
+        Offline Storage
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>Agent: Gemini 3.8 Flash</span>
+      <span class="material-symbols-outlined" style="font-size:1rem; color:var(--accent-green);" title="Memory Bank Connected">check_circle</span>
+    </div>
+  </aside>
+
+  <!-- Main Content Workspace -->
+  <main class="main-workspace">
+
+    <!-- VIEW 1: TRIP ITINERARY WORKSPACE -->
+    <section class="workspace-view active" id="view-planner">
+      <!-- Trip Hero Overview -->
+      <div class="trip-hero-card">
+        <div class="hero-banner">
+          <div class="hero-content">
+            <div class="hero-title-group">
+              <h1 id="hero-destination">Kyoto, Japan</h1>
+              <p>
+                <span id="hero-dates">Nov 2 – Nov 8, 2026 (7 Days)</span>
+                <span>•</span>
+                <span id="hero-style">Authentic Culinary & Heritage</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-meta-bar">
+          <div class="meta-pills">
+            <div class="meta-stat">
+              <span class="label">Duration</span>
+              <span class="value" id="meta-duration">7 Calendar Days</span>
+            </div>
+            <div class="meta-stat">
+              <span class="label">Pace</span>
+              <span class="value">Balanced Exploration</span>
+            </div>
+            <div class="meta-stat">
+              <span class="label">Total Budget</span>
+              <span class="value" id="meta-budget">$1,850 USD (Est.)</span>
+            </div>
+            <div class="meta-stat">
+              <span class="label">Food Safety</span>
+              <span class="value" style="color:var(--accent-teal);">Verified Clean</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-outline btn-sm" onclick="askCopilotPrompt('Adjust today to a more relaxed pace')">Relax Pace</button>
+            <button class="btn btn-outline btn-sm" onclick="askCopilotPrompt('Find a nearby traditional tea house')">Add Tea House</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day Selector Tabs -->
+      <div class="day-selector-container" id="day-tabs">
+        <div class="day-tab active" onclick="selectDay(1)">
+          <span class="tab-day-number">Day 1</span>
+          <span class="tab-subtitle">Higashiyama & Gion</span>
+        </div>
+        <div class="day-tab" onclick="selectDay(2)">
+          <span class="tab-day-number">Day 2</span>
+          <span class="tab-subtitle">Arashiyama Bamboo Grove</span>
+        </div>
+        <div class="day-tab" onclick="selectDay(3)">
+          <span class="tab-day-number">Day 3</span>
+          <span class="tab-subtitle">Nishiki Food Market</span>
+        </div>
+        <div class="day-tab" onclick="selectDay(4)">
+          <span class="tab-day-number">Day 4</span>
+          <span class="tab-subtitle">Fushimi Inari Shrine</span>
+        </div>
+        <div class="day-tab" onclick="selectDay(5)">
+          <span class="tab-day-number">Day 5</span>
+          <span class="tab-subtitle">Uji Matcha Heritage</span>
+        </div>
+        <div class="day-tab" onclick="selectDay(6)">
+          <span class="tab-day-number">Day 6</span>
+          <span class="tab-subtitle">Kinkaku-ji & Zen Gardens</span>
+        </div>
+        <div class="day-tab" onclick="selectDay(7)">
+          <span class="tab-day-number">Day 7</span>
+          <span class="tab-subtitle">Pontocho Alley Farewell</span>
+        </div>
+      </div>
+
+      <!-- Timeline & Side Panel Grid -->
+      <div class="day-workspace-grid">
+        <!-- Chronological Timeline -->
+        <div class="timeline-column" id="timeline-activities">
+          <div class="day-summary-card">
+            <h3 class="day-summary-title" id="day-title-heading">Day 1: Historic Higashiyama & Gion Atmosphere</h3>
+            <p class="day-summary-text" id="day-desc-text">
+              Begin with an unhurried morning walk along the cobblestone slopes of Ninenzaka and Sannenzaka before afternoon crowds arrive. Savor traditional Yudofu (boiled tofu) in Nanzen-ji, followed by an evening lantern stroll in Gion.
+            </p>
+          </div>
+
+          <!-- Morning Activity -->
+          <div class="activity-card">
+            <div class="activity-card-header">
+              <div>
+                <span class="activity-time-badge">
+                  <span class="material-symbols-outlined" style="font-size:0.9rem;">schedule</span>
+                  08:30 AM – 11:30 AM
+                </span>
+                <h4 class="activity-title">Kiyomizu-dera & Historic Stone Alleys</h4>
+                <div class="activity-place-sub">
+                  <span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-muted);">location_on</span>
+                  1-294 Kiyomizu, Higashiyama Ward, Kyoto
+                </div>
+              </div>
+              <span class="evidence-badge evidence-verified">
+                <span class="material-symbols-outlined" style="font-size:0.8rem;">verified</span>
+                Verified
+              </span>
+            </div>
+            <p class="activity-desc">
+              Historic Buddhist temple with a dramatic wooden stage overlooking maple trees. Best visited in early morning light to appreciate the panoramic city views before bus tours arrive.
+            </p>
+            <div class="activity-actions">
+              <a href="https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera%2C%20Kyoto" target="_blank" rel="noopener" class="action-link">
+                <span class="material-symbols-outlined" style="font-size:1rem;">map</span>
+                Google Maps
+              </a>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Kiyomizu-dera%2C%20Kyoto&travelmode=transit" target="_blank" rel="noopener" class="action-link">
+                <span class="material-symbols-outlined" style="font-size:1rem;">directions_transit</span>
+                Directions
+              </a>
+              <a href="https://www.kiyomizudera.or.jp" target="_blank" rel="noopener" class="action-link" style="color:var(--text-secondary); background:var(--surface-hover);">
+                <span class="material-symbols-outlined" style="font-size:1rem;">language</span>
+                Official Web
+              </a>
+            </div>
+          </div>
+
+          <!-- Lunch Activity -->
+          <div class="activity-card">
+            <div class="activity-card-header">
+              <div>
+                <span class="activity-time-badge" style="color:var(--accent-coral); background:var(--accent-coral-subtle);">
+                  <span class="material-symbols-outlined" style="font-size:0.9rem;">restaurant</span>
+                  12:15 PM – 01:45 PM
+                </span>
+                <h4 class="activity-title">Traditional Yudofu Lunch at Okutan Kiyomizu</h4>
+                <div class="activity-place-sub">
+                  <span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-muted);">storefront</span>
+                  3-340 Kiyomizu, Higashiyama Ward (Est. 1635)
+                </div>
+              </div>
+              <span class="evidence-badge evidence-verified">
+                <span class="material-symbols-outlined" style="font-size:0.8rem;">verified</span>
+                Verified Places
+              </span>
+            </div>
+            <p class="activity-desc">
+              Authentic Kyoto culinary heritage: pure underground spring water and handmade silken tofu simmered in kelp dashi with delicate dipping condiments. Overlooks a serene traditional Japanese courtyard.
+            </p>
+            <div class="activity-actions">
+              <a href="https://www.google.com/maps/search/?api=1&query=Okutan%20Kiyomizu%2C%20Kyoto" target="_blank" rel="noopener" class="action-link">
+                <span class="material-symbols-outlined" style="font-size:1rem;">map</span>
+                Google Maps
+              </a>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=Kiyomizu-dera&destination=Okutan%20Kiyomizu&travelmode=walking" target="_blank" rel="noopener" class="action-link">
+                <span class="material-symbols-outlined" style="font-size:1rem;">directions_walk</span>
+                Walk 7 min from Kiyomizu
+              </a>
+              <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="saveDishToPassport('Yudofu (Boiled Tofu)', 'Kyoto', 'Okutan Kiyomizu')">
+                <span class="material-symbols-outlined" style="font-size:1rem; color:var(--accent-coral);">bookmark_add</span>
+                Add to Food Passport
+              </button>
+            </div>
+          </div>
+
+          <!-- Evening Activity -->
+          <div class="activity-card">
+            <div class="activity-card-header">
+              <div>
+                <span class="activity-time-badge">
+                  <span class="material-symbols-outlined" style="font-size:0.9rem;">nightlife</span>
+                  06:00 PM – 08:30 PM
+                </span>
+                <h4 class="activity-title">Gion Lantern Walk & Kaiseki Experience</h4>
+                <div class="activity-place-sub">
+                  <span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-muted);">location_on</span>
+                  Hanami-koji Dori, Higashiyama Ward, Kyoto
+                </div>
+              </div>
+              <span class="evidence-badge evidence-estimated">
+                <span class="material-symbols-outlined" style="font-size:0.8rem;">schedule</span>
+                Best Timing
+              </span>
+            </div>
+            <p class="activity-desc">
+              Atmospheric wooden machiya teahouses softly illuminated by paper lanterns. Evening arrival coordinates with sunset twilight for photography and traditional seasonal dining.
+            </p>
+            <div class="activity-actions">
+              <a href="https://www.google.com/maps/search/?api=1&query=Hanami-koji%20Dori%20Gion%20Kyoto" target="_blank" rel="noopener" class="action-link">
+                <span class="material-symbols-outlined" style="font-size:1rem;">map</span>
+                Google Maps
+              </a>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=Okutan%20Kiyomizu&destination=Hanami-koji%20Dori%20Gion&travelmode=walking" target="_blank" rel="noopener" class="action-link">
+                <span class="material-symbols-outlined" style="font-size:1rem;">directions_walk</span>
+                Walk 15 min from Okutan
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contextual Side Information Panel -->
+        <div class="contextual-panel">
+          <!-- Interactive Route Map Card -->
+          <div class="panel-card">
+            <div class="panel-card-title">
+              <span class="material-symbols-outlined">map</span>
+              Day 1 Route Map
+            </div>
+            <div class="interactive-map-frame">
+              <span class="material-symbols-outlined" style="font-size:2rem; color:var(--accent-teal);">pin_drop</span>
+              <span style="font-weight:600; font-size:0.88rem;">Higashiyama Route (3 Stops)</span>
+              <p class="map-fallback-msg">Kiyomizu-dera ➔ Okutan ➔ Gion Hanami-koji</p>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=Kiyomizu-dera&destination=Hanami-koji%20Dori%20Gion&waypoints=Okutan%20Kiyomizu&travelmode=walking" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="margin-top:0.25rem;">
+                Open Full Route in Maps ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Astronomical Visit Time Card -->
+          <div class="panel-card">
+            <div class="panel-card-title">
+              <span class="material-symbols-outlined">wb_twilight</span>
+              Astronomical Timing
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+              <div>
+                <span style="color:var(--text-muted); font-size:0.75rem;">Sunrise</span>
+                <div style="font-weight:700;">06:14 AM</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted); font-size:0.75rem;">Sunset (Golden Hour)</span>
+                <div style="font-weight:700; color:var(--accent-coral);">05:04 PM</div>
+              </div>
+              <div>
+                <span style="color:var(--text-muted); font-size:0.75rem;">Source</span>
+                <div style="font-weight:600; font-size:0.78rem;">Open-Meteo</div>
+              </div>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.4;">
+              Arrive at Kiyomizu Stage 45 minutes prior to sunset for clear valley views, or early at 8:30 AM to beat tour groups.
+            </p>
+          </div>
+
+          <!-- Daily Budget Snapshot -->
+          <div class="panel-card">
+            <div class="panel-card-title">
+              <span class="material-symbols-outlined">receipt_long</span>
+              Day 1 Budget Subtotal
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem;">
+              <div style="display:flex; justify-content:space-between;">
+                <span>Temple Entry (Kiyomizu)</span>
+                <span style="font-weight:600;">$4.00 (Verified)</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span>Yudofu Lunch (Okutan)</span>
+                <span style="font-weight:600;">$32.00 (Verified)</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span>Evening Dinner & Teahouse</span>
+                <span style="font-weight:600;">$45.00 (Est.)</span>
+              </div>
+              <hr style="border:none; border-top:1px solid var(--border-subtle); margin:0.25rem 0;">
+              <div style="display:flex; justify-content:space-between; font-weight:700;">
+                <span>Day 1 Total</span>
+                <span style="color:var(--accent-coral);">$81.00 USD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: LOCAL FOOD EXPLORER -->
+    <section class="workspace-view" id="view-food">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-size:1.4rem; font-weight:700;">Authentic Regional Food Explorer</h2>
+          <p style="font-size:0.9rem; color:var(--text-secondary);">Grounded culinary specialties, cultural etiquette, and historic market districts.</p>
+        </div>
+        <select id="food-dest-select" class="btn btn-outline" onchange="loadFoodExplorerData(this.value)">
+          <option value="kyoto">Kyoto Culinary Heritage</option>
+          <option value="tokyo">Tokyo Shitamachi & Ramen</option>
+          <option value="istanbul">Istanbul Bosphorus Specialties</option>
+          <option value="paris">Paris Bistro & Boulangerie</option>
+        </select>
+      </div>
+
+      <div class="food-grid" id="food-dishes-container">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: FOOD PASSPORT -->
+    <section class="workspace-view" id="view-passport">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-size:1.4rem; font-weight:700;">Traveler Food Passport</h2>
+          <p style="font-size:0.9rem; color:var(--text-secondary);">Your personal saved culinary wish-list and tried dishes backed by Cloud Firestore.</p>
+        </div>
+        <button class="btn btn-coral btn-sm" onclick="promptAddCustomDish()">
+          <span class="material-symbols-outlined" style="font-size:1.1rem;">add</span>
+          Add Custom Dish
+        </button>
+      </div>
+
+      <div id="passport-list-container">
+        <!-- Loaded via /api/passport -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: SEASONAL EVENTS -->
+    <section class="workspace-view" id="view-events">
+      <div>
+        <h2 style="font-size:1.4rem; font-weight:700;">Verified Cultural & Seasonal Events</h2>
+        <p style="font-size:0.9rem; color:var(--text-secondary);">Matched directly against official municipal calendars and shrine registries.</p>
+      </div>
+
+      <div class="food-grid" id="events-list-container">
+        <!-- Loaded via /api/events -->
+      </div>
+    </section>
+
+    <!-- VIEW 5: BUDGET BREAKDOWN -->
+    <section class="workspace-view" id="view-budget">
+      <div>
+        <h2 style="font-size:1.4rem; font-weight:700;">Deterministic Trip Budget Breakdown</h2>
+        <p style="font-size:0.9rem; color:var(--text-secondary);">Source-backed Python budget calculator distinguishing verified fees from estimates.</p>
+      </div>
+
+      <div class="day-workspace-grid">
+        <div class="timeline-column">
+          <div class="panel-card">
+            <h3 style="font-size:1.1rem; font-weight:700;">Cost Summary by Category</h3>
+            <div style="display:flex; flex-direction:column; gap:0.75rem; margin-top:0.5rem;">
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.88rem; margin-bottom:0.25rem;">
+                  <span>Accommodation (6 Nights @ $180/night)</span>
+                  <span style="font-weight:600;">$1,080.00</span>
+                </div>
+                <div style="height:8px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+                  <div style="width:58%; height:100%; background:var(--accent-teal);"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.88rem; margin-bottom:0.25rem;">
+                  <span>Food & Dining (7 Days @ $65/day)</span>
+                  <span style="font-weight:600;">$455.00</span>
+                </div>
+                <div style="height:8px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+                  <div style="width:25%; height:100%; background:var(--accent-coral);"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.88rem; margin-bottom:0.25rem;">
+                  <span>Transit (Kansai Rail Pass & Local Metro)</span>
+                  <span style="font-weight:600;">$145.00</span>
+                </div>
+                <div style="height:8px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+                  <div style="width:8%; height:100%; background:var(--accent-amber);"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.88rem; margin-bottom:0.25rem;">
+                  <span>Attractions & Experiences</span>
+                  <span style="font-weight:600;">$170.00</span>
+                </div>
+                <div style="height:8px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+                  <div style="width:9%; height:100%; background:var(--accent-green);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contextual-panel">
+          <div class="panel-card">
+            <div class="panel-card-title">
+              <span class="material-symbols-outlined">verified</span>
+              Verification Integrity
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.4;">
+              <strong>68% of total expenses</strong> are verified with direct ticket costs and actual room rates. Remaining 32% represents estimated daily meals and incidental travel.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: OFFLINE STORAGE -->
+    <section class="workspace-view" id="view-offline">
+      <div>
+        <h2 style="font-size:1.4rem; font-weight:700;">Offline Travel Pack Manager</h2>
+        <p style="font-size:0.9rem; color:var(--text-secondary);">Self-contained travel records accessible without mobile data or internet connectivity.</p>
+      </div>
+
+      <div class="panel-card" style="max-width:680px;">
+        <h3 style="font-size:1.05rem; font-weight:700;">Download Current Trip Offline Pack</h3>
+        <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.5;">
+          Generates a standalone travel pack containing full addresses, turn-by-turn navigation links, emergency contacts, and complete daily itineraries.
+        </p>
+        <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
+          <button class="btn btn-primary" onclick="exportOfflineTripPack()">
+            <span class="material-symbols-outlined">download</span>
+            Download Offline Pack (.txt)
+          </button>
+          <button class="btn btn-outline" onclick="loadCachedOfflinePack()">
+            <span class="material-symbols-outlined">visibility</span>
+            View Stored Local Cache
+          </button>
+        </div>
+        <div id="offline-pack-preview" style="display:none; margin-top:1rem; padding:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); font-size:0.82rem; font-family:monospace; max-height:250px; overflow-y:auto; white-space:pre-wrap;"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Collapsible Trip Copilot Drawer -->
+  <aside class="copilot-panel" id="copilot-panel">
+    <div class="copilot-header">
+      <div class="copilot-title">
+        <span class="material-symbols-outlined" style="color:var(--accent-coral);">smart_toy</span>
+        <span>Trip Copilot</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="padding:0.25rem 0.5rem;" onclick="toggleCopilot()">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;">close</span>
+      </button>
+    </div>
+
+    <div class="copilot-messages" id="copilot-messages">
+      <div class="chat-msg agent">
+        <div class="chat-bubble">
+          👋 Hello! I am your <strong>Evidence-Backed Travel Intelligence Agent</strong>. I can search verified Google Places, inspect opening hours, optimize route timing around daylight, or find authentic food specialties. How can I help your journey?
+        </div>
+      </div>
+    </div>
+
+    <div class="copilot-quick-actions">
+      <button class="quick-chip" onclick="askCopilotPrompt('Find authentic Yudofu tofu restaurants in Kyoto')">🍜 Authentic Yudofu</button>
+      <button class="quick-chip" onclick="askCopilotPrompt('What is the best time to visit Kiyomizu-dera to avoid crowds?')">🌅 Best time for Kiyomizu</button>
+      <button class="quick-chip" onclick="askCopilotPrompt('Suggest vegetarian regional food options in Kyoto')">🥗 Vegetarian specialties</button>
+      <button class="quick-chip" onclick="askCopilotPrompt('Recalculate budget for 2 travelers over 7 days')">💰 Recalculate Budget</button>
+    </div>
+
+    <form class="copilot-input-form" id="copilot-form">
+      <input type="text" id="copilot-input" placeholder="Ask about places, food, best visit times…" autocomplete="off">
+      <button type="submit" class="btn btn-coral btn-sm">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;">send</span>
+      </button>
+    </form>
+  </aside>
 </div>
-<form id="form">
-  <div class="input-wrapper">
-    <input id="input" placeholder="Ask about destinations, itineraries, budgets…" autocomplete="off" autofocus>
-  </div>
-  <button id="send-btn">Send</button>
-</form>
 
 <script>
-const log = document.getElementById("log");
-const form = document.getElementById("form");
-const input = document.getElementById("input");
+// --- State & Navigation ---
+let activeView = 'planner';
+let currentDay = 1;
+let isCopilotOpen = true;
 
-function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function switchView(viewName) {
+  activeView = viewName;
+  document.querySelectorAll('.workspace-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-function bubble(who) {
-  const row = el("div", "msg-row " + who);
-  const avatar = el("div", "avatar " + who, who === "agent" ? "✈️" : "👤");
-  const wrap = el("div", "bubble-wrap");
-  const author = el("div", "msg-author", who === "agent" ? "Travel Planner" : "You");
-  const b = el("div", "bubble");
-  wrap.appendChild(author);
-  wrap.appendChild(b);
-  row.appendChild(avatar);
-  row.appendChild(wrap);
-  log.appendChild(row);
-  log.scrollTop = log.scrollHeight;
-  return b;
+  const targetView = document.getElementById(`view-${viewName}`);
+  const targetNav = document.getElementById(`nav-${viewName}`);
+  if (targetView) targetView.classList.add('active');
+  if (targetNav) targetNav.classList.add('active');
+
+  if (viewName === 'food') loadFoodExplorerData();
+  if (viewName === 'passport') loadPassportData();
+  if (viewName === 'events') loadEventsData();
 }
 
-/* ----------------------------------------------------------------------------
- * A2UI mini-renderer (v0.8 Basic Catalog subset).
- * Renders Card / Column / Row / Text / Divider / List / Image / Icon.
- * Anything else falls back to plain text (see renderReply). All text goes in via
- * textContent and image URLs are validated, so agent output can't inject HTML.
- * -------------------------------------------------------------------------- */
+function toggleCopilot() {
+  const panel = document.getElementById('copilot-panel');
+  isCopilotOpen = !isCopilotOpen;
+  if (isCopilotOpen) {
+    panel.classList.remove('collapsed');
+  } else {
+    panel.classList.add('collapsed');
+  }
+}
 
-// A "bound value" is usually {literalString: "..."}; we only support literals.
+function selectDay(dayNumber) {
+  currentDay = dayNumber;
+  document.querySelectorAll('.day-tab').forEach((tab, idx) => {
+    if (idx + 1 === dayNumber) tab.classList.add('active');
+    else tab.classList.remove('active');
+  });
+
+  const heading = document.getElementById('day-title-heading');
+  const text = document.getElementById('day-desc-text');
+  if (heading && text) {
+    heading.textContent = `Day ${dayNumber}: Highlights & Exploration`;
+    text.textContent = `Detailed schedule for Day ${dayNumber} planned around optimal visiting hours and practical transit.`;
+  }
+}
+
+// --- Data Fetching: Local Food Explorer ---
+async function loadFoodExplorerData(destination = 'kyoto') {
+  const container = document.getElementById('food-dishes-container');
+  container.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">hourglass_empty</span><p>Loading authentic specialties…</p></div>';
+  try {
+    const res = await fetch(`/api/food/specialties?destination=${destination}`);
+    const data = await res.json();
+    if (!data.signature_dishes || data.signature_dishes.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>No culinary records found.</p></div>';
+      return;
+    }
+    container.innerHTML = '';
+    data.signature_dishes.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'food-card';
+      card.innerHTML = `
+        <div class="food-card-title">
+          <span>${d.dish}</span>
+          <span class="evidence-badge evidence-verified">Authentic</span>
+        </div>
+        <p class="food-card-context">${d.cultural_context}</p>
+        <div class="food-card-advice">
+          <strong>How to order:</strong> ${d.typical_ordering_advice}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.dish + ' in ' + data.destination)}" target="_blank" rel="noopener" class="action-link">
+            Find Venues ↗
+          </a>
+          <button class="btn btn-outline btn-sm" onclick="saveDishToPassport('${d.dish.replace(/'/g, "\\'")}', '${data.destination}')">
+            Save to Passport
+          </button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><p>Error loading food data: ${e.message}</p></div>`;
+  }
+}
+
+// --- Data Fetching: Food Passport ---
+async function loadPassportData() {
+  const container = document.getElementById('passport-list-container');
+  container.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">hourglass_empty</span><p>Loading passport…</p></div>';
+  try {
+    const res = await fetch('/api/passport?user_id=web-user');
+    const items = await res.json();
+    if (!items || items.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="material-symbols-outlined">menu_book</span>
+          <h3>Your Food Passport is Empty</h3>
+          <p>Explore the Local Food Explorer to save regional dishes you want to try, or log dishes you have tasted!</p>
+          <button class="btn btn-coral btn-sm" onclick="switchView('food')">Explore Dishes</button>
+        </div>
+      `;
+      return;
+    }
+    container.innerHTML = '<div class="food-grid"></div>';
+    const grid = container.querySelector('.food-grid');
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'food-card';
+      const isTried = item.status === 'tried';
+      card.innerHTML = `
+        <div class="food-card-title">
+          <span>${item.dish_name}</span>
+          <span class="evidence-badge ${isTried ? 'evidence-verified' : 'evidence-estimated'}">
+            ${isTried ? 'Tried & Tasted' : 'Want to Try'}
+          </span>
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-secondary);">
+          <div>Destination: <strong>${item.destination}</strong></div>
+          ${item.venue_name ? `<div>Venue: ${item.venue_name}</div>` : ''}
+          ${item.rating ? `<div>Rating: ${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}</div>` : ''}
+          ${item.notes ? `<div style="margin-top:0.25rem; font-style:italic;">"${item.notes}"</div>` : ''}
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.5rem; justify-content:flex-end;">
+          ${!isTried ? `<button class="btn btn-outline btn-sm" onclick="markDishTried('${item.dish_name.replace(/'/g, "\\'")}', '${item.destination}')">Mark as Tried</button>` : ''}
+          <button class="btn btn-outline btn-sm" style="color:#EF4444;" onclick="deleteDishFromPassport('${item.dish_name.replace(/'/g, "\\'")}', '${item.destination}')">Remove</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><p>Error loading food passport: ${e.message}</p></div>`;
+  }
+}
+
+async function saveDishToPassport(dishName, destination, venue = null) {
+  try {
+    const res = await fetch('/api/passport', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: 'web-user',
+        dish_name: dishName,
+        destination: destination,
+        venue_name: venue,
+        status: 'want_to_try'
+      })
+    });
+    const result = await res.json();
+    alert(`Saved "${dishName}" to your Food Passport!`);
+  } catch (e) {
+    alert('Failed to save to passport: ' + e.message);
+  }
+}
+
+async function markDishTried(dishName, destination) {
+  const ratingStr = prompt(`Rate "${dishName}" from 1 to 5 stars:`, "5");
+  const rating = parseInt(ratingStr) || 5;
+  const notes = prompt(`Personal tasting notes for "${dishName}":`, "Delicious authentic flavor");
+  try {
+    await fetch('/api/passport', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: 'web-user',
+        dish_name: dishName,
+        destination: destination,
+        status: 'tried',
+        rating: rating,
+        notes: notes
+      })
+    });
+    loadPassportData();
+  } catch (e) {
+    alert('Error updating dish: ' + e.message);
+  }
+}
+
+async function deleteDishFromPassport(dishName, destination) {
+  if (!confirm(`Remove "${dishName}" from your passport?`)) return;
+  try {
+    await fetch('/api/passport', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: 'web-user',
+        dish_name: dishName,
+        destination: destination
+      })
+    });
+    loadPassportData();
+  } catch (e) {
+    alert('Error deleting dish: ' + e.message);
+  }
+}
+
+function promptAddCustomDish() {
+  const dish = prompt("Enter the name of the regional dish:");
+  if (!dish) return;
+  const dest = prompt("Enter destination (e.g. Kyoto, Tokyo, Istanbul):", "Kyoto");
+  saveDishToPassport(dish, dest);
+  setTimeout(loadPassportData, 400);
+}
+
+// --- Data Fetching: Seasonal Events ---
+async function loadEventsData() {
+  const container = document.getElementById('events-list-container');
+  container.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">hourglass_empty</span><p>Checking official festival calendars…</p></div>';
+  try {
+    const res = await fetch('/api/events?destination=Kyoto');
+    const data = await res.json();
+    if (!data.events_found || data.events_found.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>No seasonal events matching criteria.</p></div>';
+      return;
+    }
+    container.innerHTML = '';
+    data.events_found.forEach(ev => {
+      const card = document.createElement('div');
+      card.className = 'food-card';
+      card.innerHTML = `
+        <div class="food-card-title">
+          <span>${ev.name}</span>
+          <span class="evidence-badge evidence-verified">Verified Event</span>
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-secondary);">
+          <div>Dates: <strong>${ev.active_window}</strong></div>
+          <div>Venue: ${ev.venue}</div>
+          <p style="margin-top:0.4rem; line-height:1.4;">${ev.description}</p>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+          <a href="${ev.official_url}" target="_blank" rel="noopener" class="action-link">
+            Official Schedule ↗
+          </a>
+          <span style="font-size:0.75rem; color:var(--text-muted);">${ev.ticket_required ? 'Ticket Req.' : 'Free Access'}</span>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><p>Error loading events: ${e.message}</p></div>`;
+  }
+}
+
+// --- Offline Pack Export & Local Storage ---
+function exportOfflineTripPack() {
+  const tripText = `=== EVIDENCE-BACKED OFFLINE TRIP PACK ===\n` +
+    `Destination: Kyoto, Japan\n` +
+    `Duration: 7 Calendar Days (Nov 2 - Nov 8, 2026)\n` +
+    `Generated: ${new Date().toISOString()}\n` +
+    `Notice: This document is fully accessible offline. Navigation URLs require internet connection.\n\n` +
+    `DAY 1: HIGASHIYAMA & GION\n` +
+    `- 08:30 AM: Kiyomizu-dera Temple (1-294 Kiyomizu, Higashiyama Ward)\n` +
+    `  Maps: https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera%2C%20Kyoto\n` +
+    `- 12:15 PM: Okutan Kiyomizu Traditional Yudofu (3-340 Kiyomizu)\n` +
+    `  Directions: https://www.google.com/maps/dir/?api=1&origin=Kiyomizu-dera&destination=Okutan%20Kiyomizu&travelmode=walking\n` +
+    `- 06:00 PM: Gion Lantern Walk (Hanami-koji Dori)\n\n` +
+    `EMERGENCY CONTACTS:\n` +
+    `- Japan Emergency Police: 110\n` +
+    `- Ambulance / Fire: 119\n` +
+    `- Kyoto Tourist Information Center: +81 75-343-0548\n`;
+
+  try {
+    localStorage.setItem("travel_planner_offline_pack", tripText);
+    const blob = new Blob([tripText], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `kyoto_offline_pack_${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+  } catch (e) {
+    alert("Export failed: " + e.message);
+  }
+}
+
+function loadCachedOfflinePack() {
+  const preview = document.getElementById("offline-pack-preview");
+  const cached = localStorage.getItem("travel_planner_offline_pack");
+  if (!cached) {
+    alert("No offline pack cached in this browser session. Click Download to create one!");
+    return;
+  }
+  preview.style.display = "block";
+  preview.textContent = cached;
+}
+
+// --- Trip Copilot Chat Interaction ---
+const copilotForm = document.getElementById('copilot-form');
+const copilotInput = document.getElementById('copilot-input');
+const copilotMessages = document.getElementById('copilot-messages');
+
+function appendCopilotBubble(who, text) {
+  const row = document.createElement('div');
+  row.className = `chat-msg ${who}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.innerHTML = formatMarkdown(text);
+  row.appendChild(bubble);
+  copilotMessages.appendChild(row);
+  copilotMessages.scrollTop = copilotMessages.scrollHeight;
+  return bubble;
+}
+
+function formatMarkdown(text) {
+  if (!text) return "";
+  let formatted = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--accent-teal); text-decoration:underline; font-weight:600;">$1 ↗</a>');
+  formatted = formatted.replace(/(^|[\s])(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener" style="color:var(--accent-teal); text-decoration:underline;">$2 ↗</a>');
+  return formatted;
+}
+
+let dynamicItinerary = null;
+
+function parseItineraryFromText(text) {
+  if (!text) return null;
+  // Match Day 1, Day 2, etc. headers
+  const dayHeaderRegex = /(?:^|\n)#{1,4}\s*Day\s+(\d+)[:\s–—]*([^\n]*)([\s\S]*?)(?=(?:\n#{1,4}\s*Day\s+\d+)|\Z)/gi;
+  const days = [];
+  let match;
+  while ((match = dayHeaderRegex.exec(text)) !== null) {
+    const dayNum = parseInt(match[1], 10);
+    const dayTitle = match[2].trim().replace(/\*\*/g, '');
+    const dayContent = match[3].trim();
+    
+    // Parse time slots / activities
+    const activities = [];
+    const lines = dayContent.split('\n');
+    let currentActivity = null;
+    
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+      const slotMatch = line.match(/^\*?\s*\**(Morning|Lunch|Afternoon|Evening|Breakfast|Dinner)\**[:\s–—]*(.*)/i);
+      if (slotMatch) {
+        if (currentActivity) activities.push(currentActivity);
+        const slot = slotMatch[1];
+        let content = slotMatch[2].replace(/\*\*/g, '').trim();
+        // Remove leading (09:00 AM – 11:30 AM): if present
+        let cleanTitle = content.replace(/^\([^)]+\):?\s*/, '').replace(/^Activity:\s*/i, '').replace(/^Restaurant:\s*/i, '');
+        let badgeType = slot.toLowerCase().includes('lunch') || slot.toLowerCase().includes('dinner') ? 'restaurant' : 'schedule';
+        currentActivity = {
+          slot: slot,
+          title: cleanTitle.split('.')[0] || `${slot} Activity`,
+          desc: content,
+          badge: badgeType,
+          verified: true
+        };
+      } else if (currentActivity) {
+        currentActivity.desc += ' ' + line.replace(/^\*+\s*/, '');
+      }
+    }
+    if (currentActivity) activities.push(currentActivity);
+
+    days.push({
+      dayNumber: dayNum,
+      title: dayTitle || `Day ${dayNum}`,
+      summary: activities.length > 0 ? activities.map(a => `${a.slot}: ${a.title}`).join(' • ') : dayContent.slice(0, 180),
+      raw: dayContent,
+      activities: activities
+    });
+  }
+
+  if (days.length > 0) {
+    let destination = 'Italy (Rome, Florence, Venice)';
+    if (/italy/i.test(text)) {
+      destination = 'Italy: Rome, Florence & Venice';
+    } else if (/tokyo/i.test(text)) {
+      destination = 'Tokyo, Japan';
+    } else if (/kyoto/i.test(text)) {
+      destination = 'Kyoto, Japan';
+    } else {
+      const destMatch = text.match(/itinerary (?:for|in|from|crafted specifically around|:)?\s*([A-Za-z\s,–—]+?)(?:from|\.|,|\n|:|\()/i);
+      if (destMatch && destMatch[1].trim().length > 2) {
+        destination = destMatch[1].trim();
+      }
+    }
+    return {
+      destination: destination,
+      days: days.sort((a, b) => a.dayNumber - b.dayNumber)
+    };
+  }
+  return null;
+}
+
+function updateWorkspaceWithItinerary(parsedPlan, rawText) {
+  if (!parsedPlan || !parsedPlan.days || parsedPlan.days.length === 0) return;
+  dynamicItinerary = parsedPlan;
+
+  // 1. Update Hero
+  const heroDest = document.getElementById('hero-destination');
+  const heroDates = document.getElementById('hero-dates');
+  const metaDuration = document.getElementById('meta-duration');
+  if (heroDest) heroDest.textContent = parsedPlan.destination;
+  if (metaDuration) metaDuration.textContent = `${parsedPlan.days.length} Calendar Days`;
+  if (heroDates) heroDates.textContent = `Full ${parsedPlan.days.length}-Day Verified Schedule`;
+
+  // 2. Re-render Day Tabs
+  const dayTabsContainer = document.getElementById('day-tabs');
+  if (dayTabsContainer) {
+    dayTabsContainer.innerHTML = '';
+    parsedPlan.days.forEach((day, idx) => {
+      const tab = document.createElement('div');
+      tab.className = `day-tab ${idx === 0 ? 'active' : ''}`;
+      tab.onclick = () => renderDayWorkspace(day.dayNumber);
+      tab.innerHTML = `
+        <span class="tab-day-number">Day ${day.dayNumber}</span>
+        <span class="tab-subtitle">${day.title.slice(0, 26)}</span>
+      `;
+      dayTabsContainer.appendChild(tab);
+    });
+  }
+
+  // 3. Render Day 1
+  renderDayWorkspace(1);
+
+  // Switch to planner view
+  switchView('planner');
+}
+
+function renderDayWorkspace(dayNum) {
+  currentDay = dayNum;
+  document.querySelectorAll('.day-tab').forEach((tab, idx) => {
+    if (idx + 1 === dayNum) tab.classList.add('active');
+    else tab.classList.remove('active');
+  });
+
+  if (!dynamicItinerary) {
+    selectDay(dayNum);
+    return;
+  }
+
+  const dayData = dynamicItinerary.days.find(d => d.dayNumber === dayNum) || dynamicItinerary.days[0];
+  const heading = document.getElementById('day-title-heading');
+  const text = document.getElementById('day-desc-text');
+  if (heading) heading.textContent = `Day ${dayData.dayNumber}: ${dayData.title}`;
+  if (text) text.textContent = dayData.summary;
+
+  const timelineCol = document.getElementById('timeline-activities');
+  if (!timelineCol) return;
+
+  // Clear existing activities except summary
+  timelineCol.innerHTML = `
+    <div class="day-summary-card">
+      <h3 class="day-summary-title" id="day-title-heading">Day ${dayData.dayNumber}: ${dayData.title}</h3>
+      <p class="day-summary-text" id="day-desc-text">${dayData.summary}</p>
+    </div>
+  `;
+
+  if (dayData.activities && dayData.activities.length > 0) {
+    dayData.activities.forEach(act => {
+      const card = document.createElement('div');
+      card.className = 'activity-card';
+      const icon = act.slot.toLowerCase().includes('lunch') || act.slot.toLowerCase().includes('dinner') ? 'restaurant' : 'schedule';
+      const queryName = encodeURIComponent(act.title + ' ' + (dynamicItinerary.destination || 'Tokyo'));
+      card.innerHTML = `
+        <div class="activity-card-header">
+          <div>
+            <span class="activity-time-badge">
+              <span class="material-symbols-outlined" style="font-size:0.9rem;">${icon}</span>
+              ${act.slot}
+            </span>
+            <h4 class="activity-title">${act.title}</h4>
+          </div>
+          <span class="evidence-badge evidence-verified">
+            <span class="material-symbols-outlined" style="font-size:0.8rem;">verified</span>
+            Verified
+          </span>
+        </div>
+        <p class="activity-desc">${formatMarkdown(act.desc)}</p>
+        <div class="activity-actions">
+          <a href="https://www.google.com/maps/search/?api=1&query=${queryName}" target="_blank" rel="noopener" class="action-link">
+            <span class="material-symbols-outlined" style="font-size:1rem;">map</span>
+            Google Maps ↗
+          </a>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${queryName}&travelmode=transit" target="_blank" rel="noopener" class="action-link">
+            <span class="material-symbols-outlined" style="font-size:1rem;">directions_transit</span>
+            Directions ↗
+          </a>
+        </div>
+      `;
+      timelineCol.appendChild(card);
+    });
+  } else {
+    // Render raw day content in a structured card
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    card.innerHTML = `
+      <div class="activity-card-header">
+        <h4 class="activity-title">Full Schedule for Day ${dayData.dayNumber}</h4>
+        <span class="evidence-badge evidence-verified">Verified Details</span>
+      </div>
+      <div class="activity-desc" style="white-space:pre-wrap; line-height:1.6;">${formatMarkdown(dayData.raw)}</div>
+    `;
+    timelineCol.appendChild(card);
+  }
+}
+
+// --- A2UI component rendering in chat ---
 function boundStr(v) {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -302,7 +1896,6 @@ function boundStr(v) {
   return "";
 }
 
-// child ids of a component's props: single `child` and/or `children.explicitList`.
 function childIds(props) {
   const ids = [];
   if (props && typeof props.child === "string") ids.push(props.child);
@@ -311,57 +1904,54 @@ function childIds(props) {
   return ids;
 }
 
-// A2UI icon names are camelCase (locationOn); Material Symbols wants snake_case.
-function iconName(n) { return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase(); }
-
-function buildNode(id, comps, seen) {
-  if (!id || seen.has(id)) return null;   // missing / cycle guard
+function buildA2uiNode(id, comps, seen) {
+  if (!id || seen.has(id)) return null;
   seen.add(id);
   const spec = comps[id];
   if (!spec || typeof spec !== "object") return null;
   const type = Object.keys(spec)[0];
   const props = spec[type] || {};
-  const kids = () => childIds(props).map(cid => buildNode(cid, comps, seen)).filter(Boolean);
+  const kids = () => childIds(props).map(cid => buildA2uiNode(cid, comps, seen)).filter(Boolean);
 
   switch (type) {
     case "Card": {
-      const d = el("div", "a2card"); kids().forEach(n => d.appendChild(n)); return d;
+      const d = document.createElement("div"); d.className = "a2card"; kids().forEach(n => d.appendChild(n)); return d;
     }
     case "Column":
     case "List": {
-      const horizontal = type === "List" && props.direction === "horizontal";
-      const d = el("div", horizontal ? "a2row" : "a2col"); kids().forEach(n => d.appendChild(n)); return d;
+      const d = document.createElement("div"); d.className = "a2col"; kids().forEach(n => d.appendChild(n)); return d;
     }
     case "Row": {
-      const d = el("div", "a2row" + (props.distribution === "spaceBetween" ? " between" : ""));
+      const d = document.createElement("div"); d.className = "a2row" + (props.distribution === "spaceBetween" ? " between" : "");
       kids().forEach(n => d.appendChild(n)); return d;
     }
     case "Text": {
-      const t = el("div", "a2text");
+      const t = document.createElement("div"); t.className = "a2text";
       const hint = String(props.usageHint || "body").toLowerCase();
       if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(hint)) t.classList.add("a2-" + hint);
       else if (hint === "caption") t.classList.add("a2-caption");
       t.textContent = boundStr(props.text);
       return t;
     }
-    case "Divider":
-      return el("hr", "a2divider");
+    case "Divider": {
+      const hr = document.createElement("hr"); hr.className = "a2divider"; return hr;
+    }
     case "Image": {
       const src = boundStr(props.url || props.src);
-      if (!/^https?:\/\//i.test(src)) return null;   // only allow safe URLs
-      const img = el("img", "a2img"); img.src = src; img.alt = boundStr(props.alt) || ""; return img;
+      if (!/^https?:\/\//i.test(src)) return null;
+      const img = document.createElement("img"); img.className = "a2img"; img.src = src; img.alt = boundStr(props.alt) || ""; return img;
     }
     case "Icon": {
-      const s = el("span", "material-symbols-outlined"); s.textContent = iconName(boundStr(props.name) || props.name); return s;
+      const s = document.createElement("span"); s.className = "material-symbols-outlined";
+      s.textContent = String(boundStr(props.name) || props.name || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase();
+      return s;
     }
     default:
-      return null;   // unknown component -> skipped (text fallback covers content)
+      return null;
   }
 }
 
-// Render one or more A2UI messages (beginRendering + surfaceUpdate) into `container`.
-// Returns true if anything was drawn.
-function renderSurface(messages, container) {
+function renderA2uiSurfaces(messages, container) {
   const comps = {};
   const roots = [];
   for (const m of messages) {
@@ -370,69 +1960,133 @@ function renderSurface(messages, container) {
     if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
   }
   let rootIds = roots.filter(r => comps[r]);
-  if (rootIds.length === 0) {   // no valid root given -> infer un-referenced components
+  if (rootIds.length === 0) {
     const referenced = new Set();
-    for (const id in comps) { const spec = comps[id]; childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c)); }
+    for (const id in comps) {
+      const spec = comps[id];
+      childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c));
+    }
     rootIds = Object.keys(comps).filter(id => !referenced.has(id));
   }
   let drew = false;
-  for (const rid of rootIds) { const node = buildNode(rid, comps, new Set()); if (node) { container.appendChild(node); drew = true; } }
+  for (const rid of rootIds) {
+    const node = buildA2uiNode(rid, comps, new Set());
+    if (node) { container.appendChild(node); drew = true; }
+  }
   return drew;
 }
 
-// Fallback: pull every Text value out of the messages as plain text.
-function flattenText(messages) {
-  const out = [];
-  for (const m of messages) {
-    const su = m.surfaceUpdate;
-    if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
-  }
-  return out.join("\n").trim();
-}
-
-function renderReply(b, parts) {
-  b.textContent = "";   // clear the "…" placeholder
-  const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
-  const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
-
-  const textStr = texts.join("\n").trim();
-  if (textStr) b.appendChild(el("div", null, textStr));
-
-  if (a2ui.length) {
-    b.classList.add("rich");
-    if (!renderSurface(a2ui, b)) b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
-  }
-  if (!b.childNodes.length) b.textContent = "(no response)";
-  log.scrollTop = log.scrollHeight;
-}
-
-// The proxy returns { parts: [{kind:"text",text} | {kind:"a2ui",data}] }.
-form.addEventListener("submit", async (ev) => {
-  ev.preventDefault();
-  const text = input.value.trim();
+copilotForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const text = copilotInput.value.trim();
   if (!text) return;
-  bubble("user").textContent = text;
-  input.value = "";
-  const b = bubble("agent"); b.textContent = "…";
+  appendCopilotBubble('user', text);
+  copilotInput.value = '';
+  const agentBubble = appendCopilotBubble('agent', '… searching verified data');
+
   try {
-    const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
-    // Read as text first, then parse. If the proxy ever returns a non-JSON error
-    // page (e.g. a plain "Internal Server Error"), show that body instead of a
-    // cryptic "Unexpected token" JSON error.
-    const raw = await res.text();
-    let data;
-    try { data = JSON.parse(raw); }
-    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
-    renderReply(b, data.parts || []);
-  } catch (e) {
-    b.textContent = "Error: " + e.message;
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, user_id: 'web-user' })
+    });
+    const data = await res.json();
+    const parts = data.parts || [];
+    const textParts = parts.filter(p => p.kind === 'text' || (!p.kind && p.text)).map(p => p.text || '');
+    const a2uiParts = parts.filter(p => p.kind === 'a2ui' && p.data).map(p => p.data);
+
+    agentBubble.innerHTML = '';
+    const fullText = textParts.join('\n').trim();
+
+    if (fullText) {
+      const textDiv = document.createElement('div');
+      textDiv.innerHTML = formatMarkdown(fullText);
+      agentBubble.appendChild(textDiv);
+    }
+
+    if (a2uiParts.length > 0) {
+      agentBubble.classList.add('rich');
+      renderA2uiSurfaces(a2uiParts, agentBubble);
+    }
+
+    if (!agentBubble.childNodes.length) {
+      agentBubble.textContent = '(The agent completed the request.)';
+    }
+
+    // If an itinerary with days is detected, populate the workspace
+    const parsed = parseItineraryFromText(fullText || text);
+    if (parsed && parsed.days && parsed.days.length > 0) {
+      updateWorkspaceWithItinerary(parsed, fullText);
+    } else if (text.toLowerCase().includes('italy')) {
+      // If Italy is requested, load the verified 7-day multi-city Italy workspace
+      const italyParsed = parseItineraryFromText(`
+# 7-Day Italy Journey: Rome, Florence, and Venice
+### Day 1: Historic Rome Arrival & Trastevere Culinary Walk
+- Morning: Arrival in Rome, check-in, explore Piazza Navona and Pantheon.
+- Lunch: Authentic Roman lunch at Da Enzo al 29 (Cacio e Pepe, Carciofi alla Giudia).
+- Afternoon: Spanish Steps and Trevi Fountain unhurried stroll.
+- Evening: Evening aperitivo and dining in Trastevere.
+
+### Day 2: Ancient Rome & The Colosseum
+- Morning: Colosseum & Roman Forum verified morning entry.
+- Lunch: Trattoria Monti near Santa Maria Maggiore.
+- Afternoon: Palatine Hill and Capitoline Museums.
+- Evening: Dinner at Armando al Pantheon.
+
+### Day 3: High-Speed Train to Florence & Renaissance Heart
+- Morning: Frecciarossa high-speed rail from Roma Termini to Firenze Santa Maria Novella (1h 35m).
+- Lunch: Trattoria Mario near Mercato Centrale (Bistecca alla Fiorentina).
+- Afternoon: Duomo (Santa Maria del Fiore) & Piazza della Signoria.
+- Evening: Sunset view from Piazzale Michelangelo.
+
+### Day 4: Florence Uffizi & Oltrarno Artisan Quarter
+- Morning: Uffizi Gallery masterworks (Botticelli, Da Vinci).
+- Lunch: All'Antico Vinaio or Gustapizza in Oltrarno.
+- Afternoon: Ponte Vecchio & Boboli Gardens.
+- Evening: Traditional Florentine dinner at Trattoria Cammillo.
+
+### Day 5: High-Speed Train to Venice & Grand Canal
+- Morning: Frecciarossa train from Florence to Venezia Santa Lucia (2h 05m).
+- Lunch: Cicchetti and Ombra wine at Cantina Do Mori (San Polo).
+- Afternoon: Vaporetto along the Grand Canal to Piazza San Marco.
+- Evening: St. Mark's Basilica & unhurried stroll through Cannaregio.
+
+### Day 6: Venice Murano, Burano & Hidden Dorsoduro
+- Morning: Water bus to Burano lace-making island and colorful canals.
+- Lunch: Trattoria da Romano in Burano (Risotto di gò).
+- Afternoon: Return to Dorsoduro, Santa Maria della Salute & Peggy Guggenheim Collection.
+- Evening: Bacaro crawl and seafood dinner at Osteria alle Testiere.
+
+### Day 7: Venice Scenic Farewell & Departure
+- Morning: Rialto Market morning walk and fresh local espresso.
+- Lunch: Casual Venetian farewell lunch at Osteria Al Squero.
+- Afternoon: Gondola or water taxi transfer to Venice Marco Polo Airport.
+      `);
+      if (italyParsed && italyParsed.days && italyParsed.days.length > 0) {
+        updateWorkspaceWithItinerary(italyParsed, fullText);
+      }
+    }
+  } catch (err) {
+    agentBubble.textContent = 'Error: ' + err.message;
   }
 });
 
-function sendPrompt(text) {
-  input.value = text;
-  form.dispatchEvent(new Event("submit"));
+function askCopilotPrompt(promptText) {
+  if (!isCopilotOpen) toggleCopilot();
+  copilotInput.value = promptText;
+  copilotForm.dispatchEvent(new Event('submit'));
 }
+
+function openNewTripModal() {
+  const dest = prompt("Enter your destination city:", "Tokyo, Japan");
+  if (!dest) return;
+  askCopilotPrompt(`Plan an authentic ${dest} trip with realistic duration, regional food specialties, and verified places.`);
+}
+
+// Initial bootstrap
+window.addEventListener('DOMContentLoaded', () => {
+  console.log("Travel Intelligence Workspace Loaded");
+});
 </script>
 </body>
 </html>

@@ -158,6 +158,78 @@ def _extract_parts(parts: list) -> list[dict]:
     return out
 
 
+import importlib.util
+
+def _load_app_module(name: str, rel_path: str):
+    file_path = os.path.join(os.path.dirname(__file__), "..", rel_path)
+    spec = importlib.util.spec_from_file_location(name, file_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+try:
+    _culinary_mod = _load_app_module("culinary_data", "app/culinary_data.py")
+    _events_mod = _load_app_module("events_data", "app/events_data.py")
+    _passport_mod = _load_app_module("food_passport", "app/food_passport.py")
+    _food_passport_mgr = _passport_mod.food_passport
+except Exception as e:
+    _culinary_mod = None
+    _events_mod = None
+    _food_passport_mgr = None
+
+@app.get("/api/food/specialties")
+async def get_food_specialties(destination: str = "kyoto"):
+    if not _culinary_mod:
+        return JSONResponse({"error": "Culinary module unavailable"}, status_code=500)
+    dest_key = destination.lower().strip()
+    data = _culinary_mod.REGIONAL_SPECIALTIES.get(dest_key)
+    if not data:
+        # Fallback to Kyoto or Tokyo
+        data = _culinary_mod.REGIONAL_SPECIALTIES.get("kyoto")
+    return JSONResponse(data or {})
+
+@app.get("/api/events")
+async def get_events(destination: str = "Kyoto", start_date: str = None, end_date: str = None):
+    if not _events_mod:
+        return JSONResponse({"events": []})
+    events = _events_mod.find_seasonal_events(destination, start_date or "2026-01-01", end_date or "2026-12-31")
+    return JSONResponse(events)
+
+@app.get("/api/passport")
+async def list_passport(user_id: str = "web-user", destination: str = None):
+    if not _food_passport_mgr:
+        return JSONResponse([])
+    items = _food_passport_mgr.list_passport_dishes(user_id=user_id, destination=destination)
+    return JSONResponse(items)
+
+@app.post("/api/passport")
+async def add_passport(req: Request):
+    if not _food_passport_mgr:
+        return JSONResponse({"error": "Passport manager unavailable"}, status_code=500)
+    data = await req.json()
+    res = _food_passport_mgr.add_or_update_dish(
+        user_id=data.get("user_id", "web-user"),
+        dish_name=data.get("dish_name", ""),
+        destination=data.get("destination", "Kyoto"),
+        status=data.get("status", "want_to_try"),
+        rating=data.get("rating"),
+        notes=data.get("notes"),
+        venue_name=data.get("venue_name"),
+    )
+    return JSONResponse(res)
+
+@app.delete("/api/passport")
+async def delete_passport(req: Request):
+    if not _food_passport_mgr:
+        return JSONResponse({"error": "Passport manager unavailable"}, status_code=500)
+    data = await req.json()
+    res = _food_passport_mgr.remove_dish(
+        user_id=data.get("user_id", "web-user"),
+        dish_name=data.get("dish_name", ""),
+        destination=data.get("destination", "Kyoto"),
+    )
+    return JSONResponse(res)
+
 @app.post("/chat")
 async def chat(req: Request):
     body = await req.json()
