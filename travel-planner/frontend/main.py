@@ -161,7 +161,10 @@ def _extract_parts(parts: list) -> list[dict]:
 import importlib.util
 
 def _load_app_module(name: str, rel_path: str):
+    # Check parent directory (local dev) or current directory (container)
     file_path = os.path.join(os.path.dirname(__file__), "..", rel_path)
+    if not os.path.exists(file_path):
+        file_path = os.path.join(os.path.dirname(__file__), rel_path)
     spec = importlib.util.spec_from_file_location(name, file_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
