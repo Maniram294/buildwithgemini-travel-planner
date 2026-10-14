@@ -787,7 +787,11 @@ def generate_destination_image(
 
 # WRITE: after each turn, send the session to Memory Bank for extraction.
 async def generate_memories_callback(callback_context: CallbackContext):
-    await callback_context.add_session_to_memory()
+    try:
+        await callback_context.add_session_to_memory()
+    except Exception:
+        # Gracefully proceed if memory service is unavailable in local/test execution
+        pass
     return None
 
 
