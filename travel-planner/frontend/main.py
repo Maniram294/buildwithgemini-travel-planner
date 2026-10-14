@@ -178,18 +178,21 @@ except Exception as e:
     _food_passport_mgr = None
 
 @app.get("/api/food/specialties")
-async def get_food_specialties(destination: str = "kyoto"):
+async def get_food_specialties(destination: str = "italy"):
     if not _culinary_mod:
         return JSONResponse({"error": "Culinary module unavailable"}, status_code=500)
     dest_key = destination.lower().strip()
-    data = _culinary_mod.REGIONAL_SPECIALTIES.get(dest_key)
+    data = None
+    for k, v in _culinary_mod.REGIONAL_SPECIALTIES.items():
+        if k in dest_key or dest_key in k:
+            data = v
+            break
     if not data:
-        # Fallback to Kyoto or Tokyo
-        data = _culinary_mod.REGIONAL_SPECIALTIES.get("kyoto")
+        data = _culinary_mod.REGIONAL_SPECIALTIES.get("italy") or _culinary_mod.REGIONAL_SPECIALTIES.get("kyoto")
     return JSONResponse(data or {})
 
 @app.get("/api/events")
-async def get_events(destination: str = "Kyoto", start_date: str = None, end_date: str = None):
+async def get_events(destination: str = "Italy", start_date: str = None, end_date: str = None):
     if not _events_mod:
         return JSONResponse({"events": []})
     events = _events_mod.find_seasonal_events(destination, start_date or "2026-01-01", end_date or "2026-12-31")

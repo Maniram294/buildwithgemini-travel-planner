@@ -147,6 +147,130 @@ REGIONAL_SPECIALTIES: Dict[str, Dict[str, Any]] = {
             {"neighborhood": "Marché d'Aligre (12th arr.)", "vibe": "Lively authentic market square with produce stalls, flea market, and wine bars."},
             {"neighborhood": "Rue Cler / Rue Montorgueil", "vibe": "Pedestrian cobblestone market streets lined with poissonneries, boucheries, and pastry shops."}
         ]
+    },
+    "italy": {
+        "destination": "Italy (Rome, Florence, Venice)",
+        "food_culture_summary": (
+            "Italian culinary culture is fiercely regional and hyper-seasonal, guided by 'cucina povera' principles "
+            "where minimal, exceptional ingredients shine. From Roman four classic pastas to Tuscan chianina beef and "
+            "Venetian lagoon cicchetti, dining is tied to historic osterie, trattorie, and bacari."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Cacio e Pepe & Carbonara (Rome)",
+                "cultural_context": "Pillars of Roman cucina povera: Pecorino Romano DOP, toasted black pepper, guanciale, and farm eggs.",
+                "typical_ordering_advice": "Enjoy in a traditional trattoria in Trastevere or Testaccio; pair with Frascati Superiore wine."
+            },
+            {
+                "dish": "Bistecca alla Fiorentina (Florence)",
+                "cultural_context": "Thick T-bone steak from ancient Chianina cattle, grilled rare over smoking oak coals with sea salt and Tuscan olive oil.",
+                "typical_ordering_advice": "Ordered strictly by weight (al chilo) and served rare (al sangue); visit classic spots near San Lorenzo."
+            },
+            {
+                "dish": "Venetian Cicchetti & Spritz (Venice)",
+                "cultural_context": "Bite-sized bar snacks served on crusty bread in historic Venetian bacari (wine bars), washed down with an 'ombra' of local wine.",
+                "typical_ordering_advice": "Try Baccalà mantecato (whipped salt cod) and Polpette in San Polo and Cannaregio bacari."
+            },
+            {
+                "dish": "Ribollita & Pappa al Pomodoro (Tuscany)",
+                "cultural_context": "Hearty Tuscan bread soups made with cavolo nero (Tuscan black kale), cannellini beans, and day-old sourdough.",
+                "typical_ordering_advice": "Drizzle generously with fresh peppery Tuscan extra virgin olive oil."
+            },
+            {
+                "dish": "Risotto al Nero di Seppia (Venice)",
+                "cultural_context": "Iconic Venetian lagoon risotto stained jet black with fresh cuttlefish ink, simmered in rich seafood stock.",
+                "typical_ordering_advice": "Best enjoyed at waterfront osterie in Burano or Dorsoduro."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Trastevere & Testaccio (Rome)", "vibe": "Historic cobblestone alleys packed with authentic family trattorias, pizza al taglio, and traditional tripperie."},
+            {"neighborhood": "San Lorenzo & Oltrarno (Florence)", "vibe": "Historic food market bustling with tripe sandwiches (lampredotto) and artisan neighborhood osterie across the Arno."},
+            {"neighborhood": "Cannaregio & San Polo (Venice)", "vibe": "Canal-side bacari where locals gather standing for evening cicchetti and natural Venetian wines."}
+        ]
+    },
+    "rome": {
+        "destination": "Rome, Italy",
+        "food_culture_summary": (
+            "Roman cuisine is rooted in bold, rustic flavors: Pecorino Romano, guanciale, artichokes, and hearty pastas. "
+            "Eating in Rome revolves around neighborhood trattorias and historic bakeries (forni)."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Tonnarelli Cacio e Pepe",
+                "cultural_context": "Handmade egg pasta with sharp Pecorino Romano DOP and freshly cracked black pepper.",
+                "typical_ordering_advice": "Look for creamy emulsion without added cream; visit Da Enzo al 29 or Felice a Testaccio."
+            },
+            {
+                "dish": "Carciofi alla Giudia / alla Romana",
+                "cultural_context": "Historic Roman Jewish ghetto fried whole artichoke, crisp like potato chips with a tender heart.",
+                "typical_ordering_advice": "Order in the Portico d'Ottavia Jewish Ghetto during peak spring artichoke season."
+            },
+            {
+                "dish": "Rigatoni all'Amatriciana",
+                "cultural_context": "Crispy cured pork jowl (guanciale), San Marzano tomatoes, chili, and grated Pecorino Romano.",
+                "typical_ordering_advice": "Classic Roman comfort meal; authentic versions never contain onion or garlic."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Testaccio", "vibe": "The cradle of Roman cuisine with the bustling Testaccio covered market."},
+            {"neighborhood": "Trastevere", "vibe": "Lively bohemian streets with vine-covered trattorias and evening piazzas."}
+        ]
+    },
+    "florence": {
+        "destination": "Florence, Italy",
+        "food_culture_summary": (
+            "Florentine dining celebrates Tuscan simplicity, olive oil, legumes, and world-renowned meats. "
+            "From rustic market stalls serving panino con lampredotto to historic wine windows (buchette del vino)."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Bistecca alla Fiorentina",
+                "cultural_context": "High-cut Chianina T-bone steak seared over glowing wood embers, dressed simply with sea salt and olive oil.",
+                "typical_ordering_advice": "Never ask for it well-done; share a 1.2kg cut with wine from Chianti Classico."
+            },
+            {
+                "dish": "Panino con Lampredotto",
+                "cultural_context": "Centuries-old Florentine street food made from slow-simmered beef tripe with salsa verde on crusty semelle bread.",
+                "typical_ordering_advice": "Ask for 'bagnato' (bread dipped in rich cooking broth) at street kiosks like Da Nerbone."
+            },
+            {
+                "dish": "Pici al Ragù di Cinghiale",
+                "cultural_context": "Thick hand-rolled Tuscan pici pasta tossed with slow-braised wild boar sauce.",
+                "typical_ordering_advice": "Order in cozy trattorie across the Arno in the Oltrarno artisan district."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Oltrarno (Santo Spirito)", "vibe": "Artisan workshops, quiet squares, and Florentine wine bars away from tour crowds."},
+            {"neighborhood": "Mercato Centrale / San Lorenzo", "vibe": "Historic iron-and-glass market with traditional butchers downstairs and artisanal food stalls upstairs."}
+        ]
+    },
+    "venice": {
+        "destination": "Venice, Italy",
+        "food_culture_summary": (
+            "Venetian cuisine reflects its maritime empire and lagoon ecosystem: fresh Adriatic fish, creamy polenta, "
+            "and the social culture of the bacaro crawl (andar a cicheti)."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Baccalà Mantecato",
+                "cultural_context": "Air-whipped Norwegian stockfish emulsified with olive oil into a cloud-like mousse, served on grilled white polenta.",
+                "typical_ordering_advice": "A staple cicchetto at Cantina Do Mori and Cantinone Già Schiavi."
+            },
+            {
+                "dish": "Sarde in Saor",
+                "cultural_context": "Historic preservation dish of sweet-and-sour fried sardines layered with caramelized onions, pine nuts, and sultanas.",
+                "typical_ordering_advice": "Best served at room temperature after marinating for at least 24 hours."
+            },
+            {
+                "dish": "Bigoli in Salsa",
+                "cultural_context": "Thick whole-wheat Venetian pasta tossed in a melted sauce of slow-cooked salt-cured anchovies and sweet onions.",
+                "typical_ordering_advice": "Traditional Friday fasting dish, rich in savory lagoon umami."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Cannaregio (Fondamenta dei Ormesini)", "vibe": "Canal-side promenade lined with relaxed bacari where locals drink spritz at twilight."},
+            {"neighborhood": "Dorsoduro", "vibe": "Student-friendly bars, Campo Santa Margherita, and scenic canal-front cicchetti bars near the squero (gondola boatyard)."}
+        ]
     }
 }
 
@@ -158,3 +282,4 @@ def get_culinary_context(destination: str) -> Optional[Dict[str, Any]]:
         if key in dest_clean or dest_clean in key:
             return data
     return None
+

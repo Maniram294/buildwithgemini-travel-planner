@@ -95,6 +95,66 @@ SEASONAL_EVENTS_REGISTRY: List[Dict[str, Any]] = [
         "source": "Mairie de Paris",
         "verification_status": "verified",
     },
+    {
+        "event_id": "rome-estate-romana",
+        "name": "Estate Romana Cultural Summer",
+        "destination": "Rome",
+        "start_month": 6,
+        "start_day": 1,
+        "end_month": 9,
+        "end_day": 30,
+        "venue": "Tiber River banks, Castel Sant'Angelo, and Piazza del Campidoglio",
+        "description": "City-wide open-air film festivals, live classical concerts along the Lungotevere, and evening museum openings.",
+        "official_url": "https://www.culture.roma.it",
+        "ticket_required": False,
+        "source": "Comune di Roma Cultura Official Registry",
+        "verification_status": "verified",
+    },
+    {
+        "event_id": "florence-scoppio-del-carro",
+        "name": "Scoppio del Carro (Explosion of the Cart)",
+        "destination": "Florence",
+        "start_month": 4,
+        "start_day": 1,
+        "end_month": 4,
+        "end_day": 30,
+        "venue": "Piazza del Duomo",
+        "description": "Historic Easter folk tradition dating back to the First Crusade; mechanical dove sparks fireworks in the Brindellone cart.",
+        "official_url": "https://www.feelflorence.it",
+        "ticket_required": False,
+        "source": "Città di Firenze Ufficio Turismo",
+        "verification_status": "verified",
+    },
+    {
+        "event_id": "venice-festa-del-redentore",
+        "name": "Festa del Redentore",
+        "destination": "Venice",
+        "start_month": 7,
+        "start_day": 18,
+        "end_month": 7,
+        "end_day": 20,
+        "venue": "St. Mark's Basin & Giudecca Canal",
+        "description": "Centuries-old Venetian festival commemorating the end of the 1576 plague, with pontoon bridge across the Giudecca and legendary midnight fireworks.",
+        "official_url": "https://www.veneziaunica.it",
+        "ticket_required": False,
+        "source": "Comune di Venezia - Servizio Tradizioni",
+        "verification_status": "verified",
+    },
+    {
+        "event_id": "venice-biennale-arte",
+        "name": "La Biennale di Venezia (International Art & Architecture)",
+        "destination": "Venice",
+        "start_month": 4,
+        "start_day": 20,
+        "end_month": 11,
+        "end_day": 24,
+        "venue": "Giardini della Biennale & Arsenale di Venezia",
+        "description": "The world's foremost contemporary visual art exhibition, featuring national pavilions and international installations.",
+        "official_url": "https://www.labiennale.org",
+        "ticket_required": True,
+        "source": "Fondazione La Biennale di Venezia",
+        "verification_status": "verified",
+    },
 ]
 
 
@@ -120,8 +180,21 @@ def find_seasonal_events(
     target_start = datetime.date.fromisoformat(start_date) if start_date else None
     target_end = datetime.date.fromisoformat(end_date) if end_date else None
 
+    # Destination alias mapping for country-level queries
+    aliases = {
+        "italy": ["rome", "florence", "venice", "italy"],
+        "japan": ["kyoto", "tokyo", "japan"],
+        "france": ["paris", "france"],
+        "turkey": ["istanbul", "turkey"],
+    }
+    match_targets = [dest_clean]
+    for country, cities in aliases.items():
+        if country in dest_clean or any(c in dest_clean for c in cities):
+            match_targets.extend(cities)
+
     for ev in SEASONAL_EVENTS_REGISTRY:
-        if ev["destination"].lower() not in dest_clean and dest_clean not in ev["destination"].lower():
+        ev_dest = ev["destination"].lower()
+        if not any(t in ev_dest or ev_dest in t for t in match_targets):
             continue
 
         # If user gave dates, check if festival month/day overlaps

@@ -206,3 +206,61 @@ class TestVideoFeatureRemoval:
         assert "plan_trip_duration" in tool_names
         assert "discover_authentic_cuisine" in tool_names
         assert "search_destination_experiences" in tool_names
+
+
+class TestItalyDestinationConsistency:
+    """Regression test suite preventing destination leakage between Italy and Japan."""
+
+    def test_italy_duration_parsing(self):
+        """7-day Italy request parses to exactly 7 days without default conflict."""
+        res = parse_trip_duration("I am visiting Italy for 7 days. Create a day by day itinerary for Rome, Florence, Venice.")
+        assert res["num_days"] == 7
+        assert res["is_default"] is False
+        assert res["has_conflict"] is False
+
+    def test_italy_culinary_grounding(self):
+        """Italy culinary lookup returns Italian specialties (Rome, Florence, Venice) without Japanese leakage."""
+        context = get_culinary_context("Italy")
+        assert context is not None
+        assert "Rome" in context["destination"] or "Italy" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        # Verify Italian dishes are present
+        assert any("Cacio e Pepe" in d or "Carbonara" in d for d in dishes)
+        assert any("Fiorentina" in d for d in dishes)
+        assert any("Cicchetti" in d for d in dishes)
+        # Verify NO Japanese dishes leak
+        assert not any("Yudofu" in d or "Ramen" in d or "Sushi" in d for d in dishes)
+
+    def test_italy_city_specific_contexts(self):
+        """Rome, Florence, and Venice individually return authentic local cuisine."""
+        rome = get_culinary_context("Rome")
+        assert rome is not None
+        assert any("Cacio e Pepe" in d["dish"] for d in rome["signature_dishes"])
+
+        florence = get_culinary_context("Florence")
+        assert florence is not None
+        assert any("Fiorentina" in d["dish"] or "Lampredotto" in d["dish"] for d in florence["signature_dishes"])
+
+        venice = get_culinary_context("Venice")
+        assert venice is not None
+        assert any("Mantecato" in d["dish"] or "Sarde" in d["dish"] for d in venice["signature_dishes"])
+
+    def test_seven_day_structure_validation_for_italy(self):
+        """Verify 7-day multi-city Italy itinerary passes schema validation."""
+        italy_itinerary = {
+            "destination": "Italy (Rome, Florence, Venice)",
+            "num_days": 7,
+            "days": [
+                {"day_number": 1, "title": "Rome Arrival & Trastevere Walk", "morning": {"activity": "Pantheon"}, "lunch": {"restaurant": "Da Enzo"}, "afternoon": {"activity": "Trevi"}, "evening": {"restaurant": "Trastevere Trattoria"}},
+                {"day_number": 2, "title": "Ancient Rome & Colosseum", "morning": {"activity": "Colosseum"}, "lunch": {"restaurant": "Trattoria Monti"}, "afternoon": {"activity": "Roman Forum"}, "evening": {"restaurant": "Armando"}},
+                {"day_number": 3, "title": "High-Speed Rail to Florence", "morning": {"activity": "Frecciarossa"}, "lunch": {"restaurant": "Trattoria Mario"}, "afternoon": {"activity": "Duomo"}, "evening": {"restaurant": "Piazzale Michelangelo"}},
+                {"day_number": 4, "title": "Florence Uffizi & Oltrarno", "morning": {"activity": "Uffizi"}, "lunch": {"restaurant": "Gustapizza"}, "afternoon": {"activity": "Ponte Vecchio"}, "evening": {"restaurant": "Cammillo"}},
+                {"day_number": 5, "title": "High-Speed Rail to Venice", "morning": {"activity": "Train to Venice"}, "lunch": {"restaurant": "Cantina Do Mori"}, "afternoon": {"activity": "Grand Canal"}, "evening": {"restaurant": "San Marco"}},
+                {"day_number": 6, "title": "Venice Lagoon & Burano", "morning": {"activity": "Burano Island"}, "lunch": {"restaurant": "Da Romano"}, "afternoon": {"activity": "Dorsoduro"}, "evening": {"restaurant": "Alle Testiere"}},
+                {"day_number": 7, "title": "Rialto Market & Departure", "morning": {"activity": "Rialto Market"}, "lunch": {"restaurant": "Al Squero"}, "afternoon": {"activity": "Airport Transfer"}, "evening": {"restaurant": "Departure"}},
+            ]
+        }
+        res = validate_itinerary_structure(italy_itinerary, requested_days=7)
+        assert res["valid"] is True
+        assert len(res["errors"]) == 0
+
