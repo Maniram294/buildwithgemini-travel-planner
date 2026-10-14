@@ -390,6 +390,46 @@ REGIONAL_SPECIALTIES: Dict[str, Dict[str, Any]] = {
             {"neighborhood": "Pandara Road Market & Khan Market", "vibe": "Refined North Indian dining institutions, tandoori grills, and chic international bistros."},
             {"neighborhood": "Connaught Place (CP) & Daryaganj", "vibe": "Colonial-era heritage dining, heritage bakeries, and birthplace of world-famous butter chicken."}
         ]
+    },
+    "chennai": {
+        "destination": "Chennai, Tamil Nadu, India",
+        "food_culture_summary": (
+            "Chennai's culinary identity is anchored in Tamil coastal heritage, traditional vegetarian tiffin culture, "
+            "and fiery Chettinad spice mastery. From dawn degree filter coffee in brass dabara-tumblers and crispy ghee podi dosas, "
+            "to Marina Beach sundal and coastal Bay of Bengal seafood curries (Meen Kozhambu), dining in Chennai is an art form."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Degree Filter Coffee (Kaapi) in Brass Dabara",
+                "cultural_context": "Chicory-infused freshly roasted dark beans brewed through a traditional stainless steel filter, blended with frothed full-cream milk and poured back and forth from dabara to tumbler.",
+                "typical_ordering_advice": "A sacred morning and afternoon ritual across Mylapore, T. Nagar, and legendary chains like Saravana Bhavan, Sangeetha, and Rayar's Mess."
+            },
+            {
+                "dish": "Ghee Podi Dosa & Medu Vada",
+                "cultural_context": "Fermented rice and black gram crepe roasted crispy with clarified butter (ghee) and generously dredged in fiery spiced gunpowder lentil podi, paired with savory black gram fritters.",
+                "typical_ordering_advice": "Best enjoyed for breakfast or evening tiffin at Murugan Idli Shop, Rayar's Mess in Mylapore, or Ratna Cafe in Triplicane."
+            },
+            {
+                "dish": "Chettinad Pepper Chicken / Kozhi Varuval",
+                "cultural_context": "Deeply aromatic dry roast or thick gravy bursting with freshly ground black peppercorns, kalpasi (stone flower), star anise, and toasted shallots from Tamil Nadu's mercantile Chettinad region.",
+                "typical_ordering_advice": "Savor with hot parotta or steamed Ponni rice at Anjappar, Karaikudi, or Ponnusamy."
+            },
+            {
+                "dish": "Marina Beach Thenga Manga Pattani Sundal",
+                "cultural_context": "Boiled white or yellow peas tossed with grated coconut, tangy raw mango slivers, mustard seeds, green chilies, and curry leaves.",
+                "typical_ordering_advice": "Iconic beach snack sold by walking vendors along Marina Beach and Besant Nagar (Bessie) Beach during golden hour sunset walks."
+            },
+            {
+                "dish": "Meen Kozhambu (Tamil Coastal Fish Curry)",
+                "cultural_context": "Tangy tamarind, fenugreek, and shallot gravy simmered with fresh Seer fish (Vanjaram) or Sardines in earthen clay pots.",
+                "typical_ordering_advice": "Order as part of a traditional banana leaf meal at coastal seafood havens along East Coast Road (ECR) or Royapuram."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Mylapore & Triplicane", "vibe": "Historic temple quarters famous for traditional Brahmin messes, crispy ghee dosas, filter coffee, and Ratna Cafe sambar."},
+            {"neighborhood": "T. Nagar & Sowcarpet", "vibe": "Bustling shopping district with traditional South Indian vegetarian tiffin institutions, sweet stalls, and North Indian street chaat."},
+            {"neighborhood": "East Coast Road (ECR) & Royapuram", "vibe": "Seaside corridor boasting fresh Bay of Bengal catch, Chettinad seafood messes, and open-air coastal restaurants."}
+        ]
     }
 }
 

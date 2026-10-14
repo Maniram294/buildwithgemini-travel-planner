@@ -368,3 +368,33 @@ class TestDelhiDestinationIntelligence:
         assert res_explicit["num_days"] == 4
         assert res_explicit["is_default"] is False
 
+
+class TestChennaiDestinationIntelligence:
+    """Test suite for Chennai destination grounding and trip synthesis."""
+
+    def test_chennai_culinary_grounding(self):
+        """Chennai culinary lookup returns authentic Tamil specialties."""
+        context = get_culinary_context("Chennai")
+        assert context is not None
+        assert "Chennai" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Filter Coffee" in d for d in dishes)
+        assert any("Podi Dosa" in d for d in dishes)
+        assert any("Chettinad" in d for d in dishes)
+        assert any("Sundal" in d for d in dishes)
+        assert not any("Pizza" in d or "Sushi" in d or "Cacio e Pepe" in d for d in dishes)
+
+    def test_chennai_seasonal_events(self):
+        """Chennai seasonal events discovery finds Margazhi or Mylapore Festival."""
+        from app.events_data import find_seasonal_events
+        res = find_seasonal_events("Chennai")
+        assert res["count"] >= 2
+        names = [e["name"] for e in res["events_found"]]
+        assert any("Margazhi" in n or "Mylapore Festival" in n for n in names)
+
+    def test_chennai_duration_parsing(self):
+        """Single word 'Chennai' defaults to 7 days."""
+        res_default = parse_trip_duration("Chennai")
+        assert res_default["num_days"] == 7
+        assert res_default["is_default"] is True
+
