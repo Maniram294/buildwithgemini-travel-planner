@@ -15,11 +15,11 @@ Generic travel assistants hallucinate non-existent attractions, invent addresses
 ### Core Capabilities:
 1. **Intelligent Trip-Duration Handling (`plan_trip_duration`)**:
    - **Case A (No dates/duration)**: Generates a comprehensive **7-day itinerary** by default and explicitly states this assumption.
-   - **Case B (Exact duration)**: Faithfully creates the exact requested day count (e.g. 3-day, 5-day, 10-day).
+   - **Case B (Exact duration)**: Faithfully creates the exact requested day count (e.g. 3-day, 5-day, 7-day, 10-day).
    - **Case C (Calendar dates)**: Calculates inclusive calendar days (e.g., Nov 2 to Nov 8 = 7 calendar days) and aligns seasonal operating schedules.
    - **Case D (Conflict detection)**: Flags conflicts between stated days and date spans (e.g. *"3-day trip from Nov 2 to Nov 10"*) and prompts concisely for clarification.
 2. **Verified Place Links & Turn-by-Turn Directions (`link_utils.py`)**:
-   - Direct Google Maps place links for all recommended stops.
+   - Direct Google Maps place links (`maps/search?api=1&query=...`) for all recommended stops.
    - Turn-by-turn directions URLs between consecutive stops (e.g. transit or walking from Day 1 Morning stop to Lunch stop).
    - Sanitized official website links (HTTP/HTTPS only).
 3. **Authentic Local Food Discovery (`discover_authentic_cuisine`)**:
@@ -38,6 +38,11 @@ Generic travel assistants hallucinate non-existent attractions, invent addresses
 8. **Offline Trip Pack (`compile_offline_pack` & Frontend Export)**:
    - Self-contained travel document generation with complete stops, addresses, and saved links.
    - One-click "Save Trip Offline" export in the chat frontend.
+9. **Trip Copilot Context-Aware Replanning**:
+   - Real-time conversational modifications to active trips.
+   - Targeted activity and meal replacements that update day schedules and recalculate budgets deterministically without corrupting other days.
+10. **Browser-Persistent Saved Trips**:
+    - Local storage trip management allowing users to save, review, load, and switch between saved itineraries with 1-click active workspace updates.
 
 ---
 
@@ -54,11 +59,11 @@ Generic travel assistants hallucinate non-existent attractions, invent addresses
 | **Cloud Storage** | `generate_destination_image` in `app/agent.py` | Media bucket storing generated destination postcards. |
 | **Vertex AI Image Generation** | `client.models.generate_content(model="gemini-3.1-flash-lite-image")` | On-demand scenic destination postcard generation. |
 | **Vertex AI Code Execution Sandbox** | `AgentEngineSandboxCodeExecutor` in `app/agent.py` | Secure isolated environment for mathematical calculations. |
-| **A2UI Protocol & Web Frontend** | `a2ui_schema_manager`, `frontend/static/index.html` | Rich interactive card UI and web client with offline pack export. |
+| **A2UI Protocol & Web Frontend** | `a2ui_schema_manager`, `frontend/static/index.html` | Rich interactive card UI, view switcher, day tabs, and offline pack export. |
 
 ---
 
-## 📋 Implemented Tools (`app/agent.py`)
+## 📋 Implemented Agent Tools (`app/agent.py`)
 
 1. `plan_trip_duration(user_request)`: Deterministic duration and date parsing (Cases A, B, C, D).
 2. `discover_authentic_cuisine(destination, specialty_or_dish, neighborhood, origin_location, max_results)`: Verified regional cuisine and live Google Places discovery with directions.
@@ -78,35 +83,47 @@ Generic travel assistants hallucinate non-existent attractions, invent addresses
 16. `find_nearby_places(latitude, longitude, place_type, radius_meters)`: Nearby places search.
 17. `generate_destination_image(prompt, tool_context, destination_name)`: Scenic postcard generation via `gemini-3.1-flash-lite-image`.
 
-*(Note: Video generation is completely excluded from product scope. Grounded RAG corpus integration is marked as planned).*
+*(Note: Video generation is deliberately excluded from product scope. Grounded RAG corpus integration is marked as planned).*
 
 ---
 
 ## 💻 Local Development & Testing
 
-### 1. Run Unit Tests
+### 1. Run Complete Test Suite (92 Tests)
 
-Execute the complete deterministic test suite (26 unit tests):
-
-```bash
-cd travel-planner
-.venv/bin/pytest tests/unit/ -v
-```
-
-### 2. Run the Agent Playground
-
-Start the local ADK Web development server with hot reloading and Memory Bank integration:
+The repository includes a comprehensive 92-test suite covering Unit, Integration, Multi-Agent Orchestration, Trip Copilot replanning, and Playwright End-to-End browser workflows:
 
 ```bash
 cd travel-planner
-.venv/bin/adk web . --port 8080 --reload_agents --memory_service_uri=agentengine://460472171177705472
+.venv/bin/pytest tests/ -v
 ```
 
-### 3. Run the Web Frontend
+All 92 tests pass with 100% success rate:
+- **Unit Suite (60 tests)**: Schema models, validator, budget calculations, weather, places, multi-agent orchestration, and copilot engine.
+- **Integration Suite (5 tests)**: Agent streaming SSE, batch queries, live places tools, and static asset delivery.
+- **Phase 5 Interactive E2E (7 tests)**: Full user journeys, day tabs, Maps link validation, destination switching, and narrow-viewport mobile responsiveness.
+- **Phase 6 Verification Scenarios (7 tests)**: Scenarios A through G including 3-trial repeatability and persistence checks.
+
+### 2. Run the Web Frontend & Proxy Server
+
+Start the full web application locally:
 
 ```bash
 cd travel-planner/frontend
-export AGENT_ENGINE_RESOURCE_NAME="projects/513515792631/locations/us-east1/reasoningEngines/2175217729299021824"
-export AGENT_DIRECTORY="app"
-.venv/bin/python main.py
+.venv/bin/uvicorn main:app --host 0.0.0.0 --port 8081
 ```
+
+Access the UI at `http://localhost:8081`.
+
+### 3. Screen Recording Verification
+
+The repository contains an official 1080p screen recording: `demo_travel_planner.mp4`.
+Refer to [`docs/demo-recording.md`](docs/demo-recording.md) for recording reproduction steps and metadata specifications.
+
+---
+
+## ⚠️ Known Limitations & Estimates
+
+1. **Estimated Expenses**: Activity admission fees, museum tickets, and Frecciarossa rail fares are source-verified; general food estimates and miscellaneous transit represent regional market averages marked as estimates in the UI.
+2. **Quota & Fallback Modes**: When live Google Places API quotas are depleted, the intelligence engine falls back to curated verified place databases to prevent user disruptions.
+3. **RAG Integration**: Document grounding via Vertex AI RAG Engine is planned for upcoming releases.

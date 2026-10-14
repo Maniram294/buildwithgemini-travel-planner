@@ -11,6 +11,8 @@ The application features:
 - **Real Trip Intelligence Engine:** Canonical trip state schema, evidence-backed recommendations, confidence states, feasibility report (verification density score, schedule conflict analysis, pacing rating).
 - **Logistics & Transit:** Verified Frecciarossa high-speed rail corridors (Roma Termini ➔ Firenze SMN in 95 min, Firenze SMN ➔ Venezia Santa Lucia in 125 min) with direct station navigation links.
 - **Dynamic Regional Food Explorer:** Grounded Italian culinary specialties across Lazio (Cacio e Pepe, Carbonara), Tuscany (Bistecca alla Fiorentina, Ribollita), and Veneto (Cicchetti, Baccalà Mantecato, Sarde in Saor) with Food Passport integration.
+- **Trip Copilot Targeted Replanning:** Context-aware replanning replacing Day 1 lunch with a casual trattoria while preserving surrounding activities and recalculating budget deterministically.
+- **Persistent Saved Trips:** Browser `localStorage` save and restore lifecycle with modal management.
 - **Offline Travel Pack:** Exportable, self-contained travel bundle with verified addresses and coordinates.
 
 ---
@@ -25,8 +27,8 @@ The recorded demonstration strictly adheres to production media standards:
 | **Resolution** | 1920 × 1080 (1080p Full HD) | Verified (`width=1920, height=1080`) |
 | **Aspect Ratio** | 16:9 | Verified |
 | **Frame Rate** | 30.0 fps constant | Verified (`r_frame_rate=30/1`) |
-| **Duration** | 94.60 seconds (within 90–150s range) | Verified (`duration=94.60s`) |
-| **File Size** | 6.17 MB (6,170,474 bytes) | Verified |
+| **Duration** | 61.76 seconds | Verified (`duration=61.766667`) |
+| **File Size** | 2.45 MB (2,458,363 bytes) | Verified |
 | **Video Codec** | H.264 / AVC (High Profile, YUV420p) | Verified (`codec_name=h264`) |
 | **Audio** | Silent / No corrupt audio stream | Verified |
 | **Container** | MP4 (`isom / mp41`) | Verified |
@@ -50,7 +52,8 @@ cd /config/Desktop/BuildWithGemini/travel-planner/frontend
 
 ### Step 2: Run the Automated Screen Recording
 ```bash
-/opt/venv/bin/python3 /tmp/record_multiagent_italy.py
+PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright \
+  /config/Desktop/BuildWithGemini/travel-planner/.venv/bin/python /tmp/record_phase7_full_demo.py
 ```
 
 ### Step 3: Verify Video Integrity with `ffprobe`
@@ -69,22 +72,22 @@ codec_name=h264
 width=1920
 height=1080
 r_frame_rate=30/1
-duration=94.600000
-size=6170474
+duration=61.766667
+duration=61.766667
+size=2458363
 ```
 
 ---
 
 ## 4. Video Flow Breakdown
 
-1. **Initial Welcome (00:00 - 00:06):** Brand interface and multi-agent trip planner welcome bar.
-2. **Prompt Submission (00:06 - 00:15):** User types 7-day Italy request covering Rome, Florence, and Venice with authentic food, attractions, and budget.
-3. **Multi-Agent Trip Synthesis (00:15 - 00:20):** MultiAgentTravelOrchestrator coordinates Agents B–H, generating canonical trip state and Feasibility Report.
-4. **Day 1–3 Rome Heritage (00:20 - 00:36):** Ancient Rome, Trastevere dining, Vatican, and Rione Monti with verified Google Maps & transit links.
-5. **Day 4 Rome ➔ Florence Transfer (00:36 - 00:46):** Frecciarossa high-speed rail corridor (95m), Santa Maria del Fiore, and Trattoria Da Nerbone.
-6. **Day 5 Florence Renaissance (00:46 - 00:54):** Uffizi, Ponte Vecchio, and Oltrarno artisan quarters.
-7. **Day 6 Florence ➔ Venice Transfer (00:54 - 01:04):** Frecciarossa rail corridor (125m) to Venezia Santa Lucia, Grand Canal, and Rialto.
-8. **Day 7 Venice Cannaregio (01:04 - 01:14):** Cannaregio Jewish Ghetto, cicchetti bàcari, and gondola lagoon finale.
-9. **Authentic Regional Food Explorer (01:14 - 01:24):** Grounded specialties dynamically synced to Italy (Rome, Florence, and Venice).
-10. **Food Passport & Seasonal Events (01:24 - 01:30):** Personal dish tracking and seasonal Italian festivals.
-11. **Copilot Interaction & Offline Pack (01:30 - 01:34):** Context-aware Copilot quick action and offline travel pack generation.
+1. **Initial Welcome (00:00 - 00:04):** Brand interface and multi-agent trip planner welcome bar.
+2. **Prompt Submission (00:04 - 00:10):** User enters 7-day Italy request covering Rome, Florence, and Venice.
+3. **Multi-Agent Trip Synthesis (00:10 - 00:14):** MultiAgentTravelOrchestrator generates canonical trip state and Feasibility Report (`87/100`).
+4. **Day 1–3 Rome Heritage (00:14 - 00:22):** Ancient Rome, Colosseum, Roman Forum, Trastevere dining with verified Google Maps links.
+5. **Day 4 Rome ➔ Florence Transfer (00:22 - 00:26):** Frecciarossa high-speed rail corridor (95m), Santa Maria del Fiore, and Trattoria Da Nerbone.
+6. **Day 6 Florence ➔ Venice Transfer (00:26 - 00:30):** Frecciarossa rail corridor (125m) to Venezia Santa Lucia, Grand Canal, and Rialto.
+7. **Authentic Regional Food Explorer (00:30 - 00:37):** Grounded specialties dynamically filtered by Florence and Venice.
+8. **Budget Breakdown View (00:37 - 00:41):** Deterministic category cost breakdown and verification integrity badge.
+9. **Trip Copilot Targeted Replanning (00:41 - 00:49):** Replaces Day 1 lunch with casual trattoria, recalculates budget, and preserves surrounding activities.
+10. **Saved Trips Persistence (00:49 - 00:61):** Saves trip to local storage, opens Saved Trips modal, and displays persistent trip management.
