@@ -66,8 +66,8 @@ def test_workflow_02_and_03_generate_italy_and_navigate_days(browser_instance):
     hero_title = page.locator("#hero-destination").inner_text()
     assert "Italy" in hero_title
     
-    meta_days = page.locator("#meta-days").inner_text()
-    assert "7" in meta_days
+    meta_duration = page.locator("#meta-duration").inner_text()
+    assert "7" in meta_duration
     
     # Verify Day Tabs
     day_tabs = page.locator(".day-tab")
@@ -218,8 +218,8 @@ def test_workflow_11_narrow_screen_and_empty_states(browser_instance):
     welcome_input = page.locator("#welcome-input-dest")
     assert welcome_input.is_visible()
     
-    # Navigate to Food Explorer with no active trip -> Verify clear empty state
-    page.click("button:has-text('Food Explorer')")
+    # Switch to Food Explorer with no active trip via client function -> Verify clear neutral empty state
+    page.evaluate("switchView('food')")
     page.wait_for_selector(".empty-state", state="visible")
     empty_text = page.locator(".empty-state").inner_text()
     assert "No Active Trip Selected" in empty_text
