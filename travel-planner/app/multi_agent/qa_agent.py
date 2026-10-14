@@ -19,12 +19,29 @@ class QualityAssuranceAndConsistencyAgent:
         warnings = []
         suggestions = []
 
+        from .logistics_agent import TransportationAndLogisticsAgent
+
         for d in trip.days:
             # Check slot sequence
             slots = [a.slot for a in d.activities]
             if len(slots) > len(set(slots)):
                 conflicts += 1
                 warnings.append(f"Day {d.day_number} contains duplicate activity slots: {slots}")
+
+            # Geographic proximity evaluation between consecutive stops
+            for idx in range(len(d.activities) - 1):
+                a1 = d.activities[idx]
+                a2 = d.activities[idx + 1]
+                if a1.coordinates and a2.coordinates:
+                    dist_km = TransportationAndLogisticsAgent.calculate_haversine_distance_km(
+                        a1.coordinates.lat, a1.coordinates.lng,
+                        a2.coordinates.lat, a2.coordinates.lng,
+                    )
+                    # Intra-city activities separated by > 40 km may indicate an unrealistic day transit
+                    if dist_km > 40.0:
+                        warnings.append(
+                            f"Day {d.day_number}: Significant transit distance ({dist_km} km) between '{a1.title}' and '{a2.title}'."
+                        )
 
             for act in d.activities:
                 if act.verification.status == "verified":

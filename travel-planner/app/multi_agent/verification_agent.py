@@ -60,9 +60,46 @@ class PlacesAndFoodVerificationAgent:
             "rialto bridge": (45.4380, 12.3359),
             "doge's palace": (45.4337, 12.3404),
             "grand canal": (45.4371, 12.3283),
+            # Japan benchmarks
+            "tokyo": (35.6762, 139.6503),
+            "senso-ji": (35.7148, 139.7967),
+            "meiji jingu": (35.6764, 139.6993),
+            "shinjuku gyoen": (35.6852, 139.7101),
+            "tsukiji": (35.6655, 139.7707),
+            "kyoto": (35.0116, 135.7681),
+            "fushimi inari": (34.9671, 135.7727),
+            "kinkaku-ji": (35.0394, 135.7292),
+            "kiyomizu-dera": (34.9949, 135.7850),
+            "arashiyama": (35.0116, 135.6778),
+            # Kerala benchmarks
+            "kochi": (9.9312, 76.2673),
+            "fort kochi": (9.9658, 76.2421),
+            "mattancherry": (9.9582, 76.2592),
+            "alleppey": (9.4981, 76.3388),
+            "munnar": (10.0889, 77.0595),
+            "tea museum": (10.0805, 77.0620),
+            "marari beach": (9.6015, 76.2974),
         }
 
-        lat, lng = 41.9028, 12.4964 # default Italy center
+        # Default coordinate based on city
+        city_lower = (city or "").lower()
+        if "tokyo" in city_lower:
+            lat, lng = 35.6762, 139.6503
+        elif "kyoto" in city_lower:
+            lat, lng = 35.0116, 135.7681
+        elif "kochi" in city_lower:
+            lat, lng = 9.9312, 76.2673
+        elif "alleppey" in city_lower or "alappuzha" in city_lower:
+            lat, lng = 9.4981, 76.3388
+        elif "munnar" in city_lower:
+            lat, lng = 10.0889, 77.0595
+        elif "venice" in city_lower:
+            lat, lng = 45.4408, 12.3155
+        elif "florence" in city_lower:
+            lat, lng = 43.7696, 11.2558
+        else:
+            lat, lng = 41.9028, 12.4964 # default Rome/Italy center
+
         name_lower = name.lower()
         for k, coords in coord_map.items():
             if k in name_lower:
@@ -94,13 +131,29 @@ class PlacesAndFoodVerificationAgent:
             title=name,
             description=desc,
             category=category,
-            address=f"{name}, {city}, Italy",
+            address=f"{name}, {city}",
             coordinates=Coordinates(lat=lat, lng=lng),
             google_maps_url=maps_url,
             directions_url=directions_url,
             rating=4.7 if is_cost_verified else 4.5,
             review_count=1200 if is_cost_verified else 350,
-            best_time_to_visit=best_time or "Optimal morning/afternoon daylight window",
+            best_time_to_visit=best_time or "Optimal daylight visiting window",
             estimated_cost=cost_item,
             verification=verification,
         )
+
+    def search_live_experiences(self, city: str, category: str = "cultural landmarks", max_results: int = 5) -> List[Dict[str, Any]]:
+        """Query live Google Places API for real experiences in any city."""
+        from ..agent import search_destination_experiences
+        res = search_destination_experiences(destination=city, experience_category=category, max_results=max_results)
+        if isinstance(res, dict) and "places" in res and res["places"]:
+            return res["places"]
+        return []
+
+    def search_live_dining(self, city: str, dish_or_cuisine: Optional[str] = None, max_results: int = 5) -> List[Dict[str, Any]]:
+        """Query live Google Places API and culinary database for authentic dining."""
+        from ..agent import discover_authentic_cuisine
+        res = discover_authentic_cuisine(destination=city, specialty_or_dish=dish_or_cuisine, max_results=max_results)
+        if isinstance(res, dict) and "verified_places" in res and res["verified_places"]:
+            return res["verified_places"]
+        return []

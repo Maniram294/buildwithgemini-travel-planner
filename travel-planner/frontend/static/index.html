@@ -2658,10 +2658,22 @@ function updateWorkspaceWithItinerary(parsedPlan, rawText) {
     const scoreVal = document.getElementById('feasibility-score-val');
     const verRate = document.getElementById('feasibility-ver-rate');
     const conflicts = document.getElementById('feasibility-conflicts');
+    const transitOpt = document.getElementById('feasibility-transit');
     const summaryText = document.getElementById('feasibility-summary-text');
     if (scoreVal) scoreVal.textContent = `${parsedPlan.feasibilityReport.overall_score || 96}/100`;
     if (verRate) verRate.textContent = `${parsedPlan.feasibilityReport.verification_rate || 88.5}% Verified`;
     if (conflicts) conflicts.textContent = `${parsedPlan.feasibilityReport.schedule_conflicts || 0} Overlaps Detected`;
+    if (transitOpt) {
+      if (parsedPlan.destination.includes('Japan') || parsedPlan.destination.includes('Tokyo')) {
+        transitOpt.textContent = 'Shinkansen Bullet Rail';
+      } else if (parsedPlan.destination.includes('Kerala') || parsedPlan.destination.includes('Kochi')) {
+        transitOpt.textContent = 'Scenic Backwaters & Rail';
+      } else if (parsedPlan.destination.includes('Italy') || parsedPlan.destination.includes('Rome')) {
+        transitOpt.textContent = 'Frecciarossa Rail Links';
+      } else {
+        transitOpt.textContent = 'Optimized Local Routes';
+      }
+    }
     if (summaryText && parsedPlan.feasibilityReport.feasibility_summary) {
       summaryText.textContent = parsedPlan.feasibilityReport.feasibility_summary;
     }
