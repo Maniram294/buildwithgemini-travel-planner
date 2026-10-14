@@ -334,3 +334,37 @@ class TestKeralaDestinationIntelligence:
         assert res_explicit["num_days"] == 6
         assert res_explicit["is_default"] is False
 
+
+class TestDelhiDestinationIntelligence:
+    """Test suite for Delhi trip parsing, regional cuisine grounding, and events."""
+
+    def test_delhi_culinary_grounding(self):
+        """Delhi culinary lookup returns authentic North Indian specialties without foreign leakage."""
+        context = get_culinary_context("Delhi")
+        assert context is not None
+        assert "Delhi" in context["destination"]
+        dishes = [d["dish"] for d in context["signature_dishes"]]
+        assert any("Butter Chicken" in d for d in dishes)
+        assert any("Nihari" in d for d in dishes)
+        assert any("Paranthe" in d for d in dishes)
+        assert any("Chole Bhature" in d for d in dishes)
+        assert not any("Pizza" in d or "Sushi" in d or "Cacio e Pepe" in d for d in dishes)
+
+    def test_delhi_seasonal_events(self):
+        """Delhi seasonal events discovery finds verified local cultural festivals."""
+        from app.events_data import find_seasonal_events
+        res = find_seasonal_events("Delhi")
+        assert res["count"] >= 2
+        names = [e["name"] for e in res["events_found"]]
+        assert any("Arts & Heritage" in n or "Qutub Festival" in n for n in names)
+
+    def test_delhi_duration_parsing(self):
+        """Single word 'Delhi' or detailed phrase defaults correctly to 7 days."""
+        res_default = parse_trip_duration("Delhi")
+        assert res_default["num_days"] == 7
+        assert res_default["is_default"] is True
+
+        res_explicit = parse_trip_duration("4-day Delhi heritage and food tour")
+        assert res_explicit["num_days"] == 4
+        assert res_explicit["is_default"] is False
+

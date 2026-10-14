@@ -1165,6 +1165,9 @@
           <div class="welcome-suggestions">
             <div class="welcome-suggestions-label">Popular Destinations & Prompts (Click to Fill)</div>
             <div class="welcome-chips">
+              <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('Plan an authentic Delhi, India trip with realistic duration, regional food specialties, and verified places.')">
+                <span>🏰</span> Delhi, India (Mughal Heritage, Chandni Chowk & Street Food)
+              </button>
               <button type="button" class="welcome-chip" onclick="fillWelcomePrompt('Plan an authentic Kerala, India trip with realistic duration, regional food specialties, and verified places.')">
                 <span>🌴</span> Kerala, India (God's Own Country & Backwaters)
               </button>
@@ -1484,6 +1487,7 @@
           <p style="font-size:0.9rem; color:var(--text-secondary);">Grounded culinary specialties, cultural etiquette, and historic market districts.</p>
         </div>
         <select id="food-dest-select" class="btn btn-outline" onchange="loadFoodExplorerData(this.value)">
+          <option value="delhi">Delhi (Mughlai & Punjabi Street Food)</option>
           <option value="kerala">Kerala (God's Own Country & Backwaters)</option>
           <option value="hyderabad">Hyderabad (Nizami Heritage & Biryani)</option>
           <option value="italy">Italy (Rome, Florence & Venice)</option>
@@ -1709,11 +1713,17 @@ async function generateNewTrip(promptText) {
     loaderText.textContent = `Planning and verifying itinerary for "${promptText.slice(0, 45)}…" with Gemini Agent…`;
   }
 
+  // If user entered a short or bare destination query like "Delhi", expand it into an explicit planning prompt
+  let backendQuery = promptText;
+  if (!/(?:plan|itinerary|trip|days?|visit|schedule|travel)/i.test(promptText)) {
+    backendQuery = `Plan an authentic 7-day itinerary for ${promptText} with day-by-day morning, lunch, afternoon, and evening schedule, regional culinary specialties, and verified places.`;
+  }
+
   try {
     const res = await fetch('/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: promptText, user_id: 'web-user' })
+      body: JSON.stringify({ message: backendQuery, user_id: 'web-user' })
     });
     const data = await res.json();
     const parts = data.parts || [];
@@ -1855,6 +1865,50 @@ async function generateNewTrip(promptText) {
 - Morning: Morning walk around KBR National Park green trail in Jubilee Hills.
 - Lunch: Grand farewell lunch at Jewel of Nizam (The Minar) in Gandipet.
 - Afternoon: Local sweet shopping for Karachi Bakery fruit biscuits before airport transfer.
+      `, promptText);
+    } else if (!parsed && /delhi/i.test(promptText)) {
+      parsed = parseItineraryFromText(`
+# 7-Day Authentic Delhi Heritage & Culinary Journey
+### Day 1: Historic Shahjahanabad, Red Fort & Chandni Chowk
+- Morning: Explore the 17th-century Red Fort (Lal Qila) and Lahori Gate heritage grounds.
+- Lunch: Legendary Stuffed Paranthe at Paranthe Wali Gali with sweet pumpkin sabzi and tamarind chutney.
+- Afternoon: Jama Masjid panoramic minaret climb and historic spice market walk through Khari Baoli.
+- Evening: Evening Nihari and Mughlai dining at Karim's / Al Jawahar near Jama Masjid Gate 1.
+
+### Day 2: Mughal Masterpieces & Nizamuddin Heritage
+- Morning: Humayun's Tomb (UNESCO World Heritage Persian garden-tomb complex) morning walk.
+- Lunch: Authentic North Indian Dal Makhani and Butter Chicken at Gulati or Havemore on Pandara Road.
+- Afternoon: Sunder Nursery heritage ecological park restoration trail and historic monuments.
+- Evening: Atmospheric Thursday evening Sufi Qawwali at Hazrat Nizamuddin Dargah.
+
+### Day 3: Imperial New Delhi, India Gate & Lodhi Gardens
+- Morning: Walk through the historic Mughal and colonial avenues of Rajpath and India Gate memorial.
+- Lunch: South Indian filter coffee and ghee roast dosa at Andhra Bhavan canteen (Ashoka Road).
+- Afternoon: Stroll through Lodhi Gardens viewing 15th-century Sayyid and Lodi Dynasty tombs.
+- Evening: Explore the street art murals of Lodhi Art District and upscale Khan Market cafes.
+
+### Day 4: Ancient Mehrauli & The Soaring Qutub Minar
+- Morning: Qutub Minar complex, Iron Pillar of Delhi, and Alai Darwaza architecture walk.
+- Lunch: Chole Bhature with spicy pickled carrots and lassi at Sita Ram Diwan Chand.
+- Afternoon: Mehrauli Archaeological Park including Jamali Kamali Mosque and Rajon ki Baoli stepwell.
+- Evening: Sunset view and rooftop dinner overlooking Qutub Minar from Mehrauli heritage strip.
+
+### Day 5: Spiritual Sanctuaries & Artisan Bazaars
+- Morning: Peaceful morning walk around Lotus Temple (Bahá'í House of Worship) and surrounding gardens.
+- Lunch: Street chaat feast (Dahi Bhalla, Papdi Chaat) at Natraj Corner or Prabhu Chaat.
+- Afternoon: National Museum of New Delhi (Harappan artifacts and miniature paintings).
+- Evening: Open-air cultural crafts shopping and state food stalls at Dilli Haat INA.
+
+### Day 6: Agrasen ki Baoli, Connaught Place & Modern Delhi
+- Morning: Explore the dramatic 14th-century stepwell Agrasen ki Baoli near Hailey Road.
+- Lunch: Colonial-era heritage lunch at Kwality (Chana Bhatura) or United Coffee House in Connaught Place.
+- Afternoon: Gurudwara Bangla Sahib community kitchen (Langar) tour and serene sarovar pool walk.
+- Evening: Stroll around Central Park CP, Janpath flea market, and sunset tea at Cha Bar.
+
+### Day 7: Akshardham Architecture, Yamuna River & Departure
+- Morning: Swaminarayan Akshardham Temple architectural carvings and boat ride exhibition.
+- Lunch: Grand farewell North Indian thali at Rajdhani or Pind Balluchi.
+- Afternoon: Souvenir shopping for spice blends at Chandni Chowk before transfer to Indira Gandhi International Airport.
       `, promptText);
     }
 
@@ -2269,6 +2323,32 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
         "Day 6: Paigah Tombs & Falaknuma Palace Heritage Walk",
         "Day 7: Royal Nizam Culinary Tour & Departure"
       ];
+    } else if (routeString && /delhi/i.test(destination + ' ' + promptText)) {
+      dayStrings = [
+        "Day 1: Historic Shahjahanabad, Red Fort & Chandni Chowk",
+        "Day 2: Mughal Masterpieces, Humayun's Tomb & Nizamuddin Dargah",
+        "Day 3: Imperial New Delhi, India Gate & Lodhi Gardens",
+        "Day 4: Ancient Mehrauli, Qutub Minar & Archaeological Park",
+        "Day 5: Spiritual Sanctuaries, Lotus Temple & Dilli Haat",
+        "Day 6: Agrasen ki Baoli, Connaught Place & Bangla Sahib",
+        "Day 7: Swaminarayan Akshardham & Departure"
+      ];
+    }
+  }
+
+  // If still no dayStrings, extract from Key Highlights / Attractions or subtitle texts dynamically
+  if (dayStrings.length === 0) {
+    const highlightsText = textStrings.find(t => /Key Highlights:|Highlights:|Attractions:|Must-see:/i.test(t));
+    if (highlightsText) {
+      const placesStr = highlightsText.replace(/Key Highlights:|Highlights:|Attractions:|Must-see:/i, '').trim();
+      const places = placesStr.split(/,\s*|(?:\s*&\s*)|\s*•\s*/).map(p => p.trim()).filter(p => p.length > 2);
+      if (places.length > 0) {
+        dayStrings = [];
+        for (let i = 0; i < Math.min(places.length, 7); i++) {
+          const nextPlace = places[(i + 1) % places.length];
+          dayStrings.push(`Day ${i + 1}: Discover ${places[i]}, Local Culinary Walk & ${nextPlace}`);
+        }
+      }
     }
   }
 
@@ -2312,6 +2392,7 @@ function extractItineraryFromA2ui(a2uiParts, promptText) {
 
 function detectDestinationName(text) {
   if (!text) return 'Custom Journey';
+  if (/delhi/i.test(text)) return 'Delhi, India: Mughal Heritage & Street Food';
   if (/kerala|kochi|munnar|alappuzha|alleppey/i.test(text)) return 'Kerala, India: Backwaters & Hill Country';
   if (/hyderabad/i.test(text)) return 'Hyderabad, India';
   if (/italy|rome|florence|venice/i.test(text)) return 'Italy: Rome, Florence & Venice';
@@ -2547,6 +2628,10 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
     if (astroSunrise) astroSunrise.textContent = '07:24 AM';
     if (astroSunset) astroSunset.textContent = '06:20 PM';
     if (astroAdvice) astroAdvice.textContent = 'Visit the Pincio Terrace above Piazza del Popolo or Giardino degli Aranci on the Aventine Hill for Roman golden hour.';
+  } else if (/delhi/i.test(destination) || /delhi/i.test(dayData.title) || /red fort|chandni chowk|qutub|humayun/i.test(dayData.title)) {
+    if (astroSunrise) astroSunrise.textContent = '06:22 AM';
+    if (astroSunset) astroSunset.textContent = '05:52 PM';
+    if (astroAdvice) astroAdvice.textContent = 'Experience sunset and evening illumination at Humayun’s Tomb gardens or India Gate promenade during golden hour.';
   } else if (/hyderabad/i.test(destination) || /hyderabad/i.test(dayData.title) || /charminar|golconda/i.test(dayData.title)) {
     if (astroSunrise) astroSunrise.textContent = '06:12 AM';
     if (astroSunset) astroSunset.textContent = '06:05 PM';
@@ -2582,7 +2667,26 @@ function updateContextualPanelForDay(dayData, destination = 'Italy') {
     let item2 = { name: 'Authentic Regional Lunch', cost: isItaly ? '25.00' : (isIndia ? '450.00' : '28.00'), status: 'Verified' };
     let item3 = { name: 'Evening Dining & Specialties', cost: isItaly ? '38.00' : (isIndia ? '650.00' : '40.00'), status: 'Est.' };
 
-    if (isKerala) {
+    const isDelhi = /delhi/i.test(destination) || /delhi|red fort|chandni chowk|qutub|humayun/i.test(dayData.title);
+    if (isDelhi) {
+      if (actTitles.some(t => /red fort|chandni chowk|paranthe|jama masjid/i.test(t))) {
+        item1 = { name: 'Red Fort & Jama Masjid Entry', cost: '300.00', status: 'Verified' };
+        item2 = { name: 'Paranthe Wali Gali Feast & Lassi', cost: '350.00', status: 'Verified' };
+        item3 = { name: 'Karim\'s Mughlai Dinner & Kebab', cost: '650.00', status: 'Verified' };
+      } else if (actTitles.some(t => /qutub|mehrauli/i.test(t))) {
+        item1 = { name: 'Qutub Minar Archaeological Complex Ticket', cost: '350.00', status: 'Verified' };
+        item2 = { name: 'Sita Ram Diwan Chand Chole Bhature', cost: '220.00', status: 'Verified' };
+        item3 = { name: 'Mehrauli Rooftop Heritage Dining', cost: '750.00', status: 'Est.' };
+      } else if (actTitles.some(t => /humayun|sunder nursery/i.test(t))) {
+        item1 = { name: 'Humayun\'s Tomb & Sunder Nursery Entry', cost: '350.00', status: 'Verified' };
+        item2 = { name: 'Pandara Road Butter Chicken & Dal Makhani', cost: '580.00', status: 'Verified' };
+        item3 = { name: 'Nizamuddin Sufi Evening & Refreshments', cost: '400.00', status: 'Est.' };
+      } else {
+        item1 = { name: 'Heritage Monument & Museum Entry', cost: '300.00', status: 'Verified' };
+        item2 = { name: 'Authentic Street Food & Regional Lunch', cost: '380.00', status: 'Verified' };
+        item3 = { name: 'Dinner & Regional Specialties', cost: '600.00', status: 'Est.' };
+      }
+    } else if (isKerala) {
       if (actTitles.some(t => /kochi|chinese fishing|mattancherry|jew town/i.test(t))) {
         item1 = { name: 'Mattancherry Palace & Synagogue Ticket', cost: '150.00', status: 'Verified' };
         item2 = { name: 'Fort Kochi Fresh Seafood / Sadya Lunch', cost: '480.00', status: 'Verified' };

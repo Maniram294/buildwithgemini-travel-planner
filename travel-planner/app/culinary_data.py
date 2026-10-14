@@ -350,6 +350,46 @@ REGIONAL_SPECIALTIES: Dict[str, Dict[str, Any]] = {
             {"neighborhood": "Kozhikode (Calicut) Beach & SM Street", "vibe": "The culinary epicenter of Malabar: Halwa stalls, Banana chip fryers, and heritage biryani institutions."},
             {"neighborhood": "Alappuzha Backwaters & Canal Shacks", "vibe": "Floating kitchens, spicy clay-pot fish curry meals, and freshly caught lake prawns."}
         ]
+    },
+    "delhi": {
+        "destination": "Delhi, India",
+        "food_culture_summary": (
+            "Delhi cuisine is a legendary synthesis of royal Mughal court banquets (Mughlai) and hearty Punjabi street food. "
+            "From the labyrinthine alleyways of Shahjahanabad (Old Delhi) serving melt-in-mouth kebabs, slow-simmered Nihari, "
+            "and stuffed Paranthe, to post-partition butter chicken and chaat stalls, food is deeply woven into Delhi's soul."
+        ),
+        "signature_dishes": [
+            {
+                "dish": "Butter Chicken (Murgh Makhani) & Dal Makhani",
+                "cultural_context": "Post-partition innovation by Kundan Lal Gujral at Moti Mahal (Daryaganj), velvety tomato-butter gravy with tandoori chicken, paired with 24-hour slow-cooked black lentils.",
+                "typical_ordering_advice": "Enjoy at iconic institutions in Daryaganj, Pandara Road (Gulati / Havemore), or Old Delhi."
+            },
+            {
+                "dish": "Nalli Nihari & Khamiri Roti",
+                "cultural_context": "Slow-cooked mutton shank stew simmered overnight with bone marrow and aromatic spices, traditionally eaten by Mughal royalty and Old Delhi workers at dawn.",
+                "typical_ordering_advice": "Head to Old Delhi near Jama Masjid (Karim's or Al Jawahar) or Ballimaran in the early morning or evening."
+            },
+            {
+                "dish": "Stuffed Paranthe with White Butter & Pickles",
+                "cultural_context": "Golden, deep-fried flatbreads stuffed with spiced potatoes, cauliflower, radishes, rabri, or cottage cheese served with sweet-sour pumpkin sabzi and tamarind chutney.",
+                "typical_ordering_advice": "Visit the 150-year-old shops of Paranthe Wali Gali in Chandni Chowk."
+            },
+            {
+                "dish": "Chole Bhature",
+                "cultural_context": "Fluffy, puffed leavened deep-fried bread (bhatura) paired with tangy, dark, spice-infused chickpea curry (chole), pickled onions, and raw green chilies.",
+                "typical_ordering_advice": "A beloved weekend breakfast across Delhi; try at Sita Ram Diwan Chand (Paharganj) or Chache Di Hatti (Kamla Nagar)."
+            },
+            {
+                "dish": "Old Delhi Chaat (Dahi Bhalla & Papdi Chaat)",
+                "cultural_context": "Crispy fried wafers and lentil fritters topped with whipped sweet yogurt, spicy mint chutney, tangy tamarind saunth, and roasted cumin powder.",
+                "typical_ordering_advice": "Best savored at Natraj Dahi Bhalla Corner (Chandni Chowk, since 1940) or Prabhu Chaat Bhandar."
+            }
+        ],
+        "food_neighborhoods": [
+            {"neighborhood": "Chandni Chowk & Jama Masjid (Old Delhi)", "vibe": "Centuries-old alleys packed with legendary street food vendors, Mughlai kebabs, and sweet shops."},
+            {"neighborhood": "Pandara Road Market & Khan Market", "vibe": "Refined North Indian dining institutions, tandoori grills, and chic international bistros."},
+            {"neighborhood": "Connaught Place (CP) & Daryaganj", "vibe": "Colonial-era heritage dining, heritage bakeries, and birthplace of world-famous butter chicken."}
+        ]
     }
 }
 
